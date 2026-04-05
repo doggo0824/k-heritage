@@ -1,0 +1,55 @@
+# backend/main.py
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import httpx
+import os
+
+app = FastAPI(title="국가유산 인터랙티브 백엔드")
+
+class ChatRequest(BaseModel):
+    messages: list
+
+class SaveRequest(BaseModel):
+    conversation: list
+    template: str
+
+class GenerateRequest(BaseModel):
+    prompt: str
+    style: str
+
+@app.post("/api/chat")
+async def chat(request: ChatRequest):
+    """LLM 채팅 엔드포인트"""
+    # OpenAI API 또는 로컬 LLM 호출
+    # 예시:
+    # response = await openai.ChatCompletion.create(...)
+    return {"reply": "실록 스타일 응답"}
+
+@app.post("/api/sagwan/save")
+async def save_sagwan(request: SaveRequest):
+    """실록 기록 저장"""
+    # 데이터베이스 저장
+    # SQLite/PostgreSQL 사용
+    return {"status": "saved", "id": "record_123"}
+
+@app.get("/api/sagwan/history")
+async def get_history():
+    """과거 기록 조회"""
+    # 데이터베이스에서 기록 가져오기
+    return {"records": []}
+
+@app.post("/api/generate-image")
+async def generate_image(request: GenerateRequest):
+    """이미지 생성 (DALL-E / Stable Diffusion)"""
+    # 이미지 생성 API 호출
+    return {"image_url": "https://example.com/generated.png"}
+
+@app.post("/api/print")
+async def print_image(request: GenerateRequest):
+    """프린터로 이미지 전송"""
+    # CUPS 또는 프린터 API 호출
+    return {"status": "sent_to_printer"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
