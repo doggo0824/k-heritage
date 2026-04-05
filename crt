@@ -1,0 +1,161 @@
+// js/feature2-crt.js
+class NationalHeritageCRT {
+    constructor() {
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.cube = null;
+        this.init();
+    }
+    
+    async init() {
+        this.setupThreeJS();
+        this.setupWebcam();
+        this.setupMediaPipe();
+        this.load3DModel();
+    }
+    
+    setupThreeJS() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        
+        this.renderer = new THREE.WebGLRenderer({ alpha: true });
+        this.renderer.setSize(300, 300);
+        this.renderer.domElement.id = '3d-output';
+        
+        document.getElementById('feature-container').appendChild(this.renderer.domElement);
+        this.camera.position.z = 3;
+        
+        // 조명
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 2);
+        this.scene.add(directionalLight);
+    }
+    
+    setupWebcam() {
+        const video = document.getElementById('webcam');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            });
+    }
+    
+    async setupMediaPipe() {
+        const hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+        const face = new FaceMesh({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
+        
+        hands.setOptions({
+            maxNumHands: 2,
+            minDetectionConfidence: 0.5
+        });
+        
+        hands.onResults(this.onHandResults.bind(this));
+        face.onResults(this.onFaceResults.bind(this));
+        
+        const video = document.getElementById('webcam');
+        video.addEventListener('play', async () => {
+            const loop = async () => {
+                if (video.readyState >= 2) {
+                    await hands.send({ image: video });
+                    await face.send({ image: video });
+                }
+                requestAnimationFrame(loop);
+            };
+            loop();
+        });
+    }
+    
+    load3DModel() {
+        const loader = new THREE.GLTFLoader();
+        // 사용자가 제공할 3D 모델 파일
+        loader.load('assets/3d-models/heritage.glb', (gltf) => {
+            this.cube = gltf.scene;
+            this.cube.scale.set(0.5, 0.5, 0.5);
+            this.scene.add(this.cube);
+        });
+    }
+    
+    onHandResults(results) {
+        const video = document.getElementById('webcam');
+        const ctx = this.canvas.getContext('2d');
+        
+        // 손이 펼쳐지면 3D 모델 표시
+        const isOpenHand = this.detectOpenHand(results.multiHandLandmarks);
+        
+        if (isOpenHand && this.cube) {
+            this.cube.visible = true;
+            this.cube.rotation.y += 0.01;
+        } else {
+            if (this.cube) this.cube.visible = false;
+        }
+        
+        this.applyCRTEffect(ctx, results);
+        this.renderer.render(this.scene, this.camera);
+    }
+    
+    onFaceResults(results) {
+        const video = document.getElementById('webcam');
+        const ctx = this.canvas.getContext('2d');
+        
+        // 얼굴 영역에 CRT 효과
+        if (results.multiFaceLandmarks) {
+            this.applyCRTToFace(ctx, results.multiFaceLandmarks[0]);
+        }
+    }
+    
+    detectOpenHand(landmarks) {
+        if (!landmarks || landmarks.length === 0) return false;
+        const hand = landmarks[0];
+        
+        // 손가락 끝과 관절 비교
+        const fingerTips = [8, 12, 16, 20];
+        const fingerJoints = [5, 9, 13, 17];
+        
+        return fingerTips.every((tip, i) => hand[tip].y < hand[fingerJoints[i]].y);
+    }
+    
+    applyCRTEffect(ctx, results) {
+        // 스캔라인 효과
+        const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const data = imageData.data;
+        
+        for (let y = 0; y < ctx.canvas.height; y += 2) {
+            for (let x = 0; x < ctx.canvas.width; x++) {
+                const idx = (y * ctx.canvas.width + x) * 4;
+                data[idx] *= 0.8;     // R
+                data[idx + 1] *= 1.0; // G
+                data[idx + 2] *= 0.8; // B
+            }
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+    }
+    
+    applyCRTToFace(ctx, landmarks) {
+        // 얼굴 영역에 CRT 효과 적용
+        const boundingBox = this.getBoundingBox(landmarks);
+        // 얼굴 영역에 스캔라인 처리
+    }
+    
+    getBoundingBox(landmarks) {
+        let minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (const lm of landmarks) {
+            minX = Math.min(minX, lm.x);
+            minY = Math.min(minY, lm.y);
+            maxX = Math.max(maxX, lm.x);
+            maxY = Math.max(maxY, lm.y);
+        }
+        return { minX, minY, maxX, maxY };
+    }
+    
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        if (this.cube && this.cube.visible) {
+            this.cube.rotation.y += 0.01;
+            this.cube.rotation.x += 0.005;
+        }
+        this.renderer.render(this.scene, this.camera);
+    }
+}
