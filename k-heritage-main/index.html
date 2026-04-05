@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>k-heritage</title>
+    <link rel="stylesheet" href="./css/style.css">  <!-- ./css/style.css -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+</head>
+<body>
+    <div id="app">
+        <header class="main-header">
+            <h1>🏛️ 국가유산 인터랙티브 체험</h1>
+            <nav class="feature-nav">
+                <button data-feature="1">단청 물결</button>
+                <button data-feature="2">국가유산 CRT</button>
+                <button data-feature="3">색즉시공</button>
+                <button data-feature="4">인크레디박스</button>
+                <button data-feature="5">인생네컷</button>
+                <button data-feature="6">사관 LLM</button>
+                <button data-feature="7">보존과학</button>
+                <button data-feature="8">인터렉티브</button>
+            </nav>
+        </header>
+        <main id="feature-container">
+            <div class="welcome-screen">
+                <h2>✅ 웹사이트가 정상 로드되었습니다!</h2>
+                <p>8 가지 국가유산 기반 인터랙티브 체험</p>
+                <button id="test-btn" style="margin-top:20px; padding:10px 20px;">테스트 시작</button>
+            </div>
+        </main>
+        <div id="webcam-container" style="display:none;">
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="output-canvas"></canvas>
+        </div>
+        <footer class="main-footer">
+            <span>© 2026 국가유산 디지털 아카이브</span>
+        </footer>
+    </div>
+    <script src="./js/main.js"></script>  <!-- ./js/main.js -->
+</body>
+</html>
