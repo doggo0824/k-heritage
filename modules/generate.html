@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터랙티브 국가유산</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; background-color: #2c3e50; color: white; padding-top: 100px; }
+        #mic-btn { font-size: 24px; padding: 20px 40px; border-radius: 50px; border: none; cursor: pointer; background-color: #e74c3c; color: white; }
+        #status { margin-top: 20px; font-size: 18px; color: #ecf0f1; }
+        #result-image { margin-top: 40px; max-width: 600px; border: 5px solid gold; display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #result-image { visibility: visible; position: absolute; left: 0; top: 0; width: 100%; border: none; }
+        }
+    </style>
+</head>
+<body>
+    <button id="mic-btn">음성으로 유물 설명하기</button>
+    <div id="status">버튼을 누르고 상상하는 국가유산을 설명하세요.</div>
+    <img id="result-image" alt="생성된 국가유산" />
+
+    <script>
+        const micBtn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status');
+        const resultImg = document.getElementById('result-image');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'ko-KR';
+
+        micBtn.addEventListener('click', () => {
+            recognition.start();
+            statusText.innerText = '듣고 있습니다...';
+        });
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[0][0].transcript;
+            statusText.innerText = '인식된 설명: ' + transcript + ' \n이미지를 생성 중입니다...';
+
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: transcript + ' 스타일: 한국의 전통 국가유산, 고해상도 사실적 묘사' })
+            });
+            const data = await response.json();
+            
+            resultImg.src = data.imageUrl;
+            resultImg.style.display = 'inline-block';
+            statusText.innerText = '생성 완료. 인쇄를 시작합니다.';
+            
+            resultImg.onload = () => { window.print(); };
+        };
+    </script>
+</body>
+</html>
