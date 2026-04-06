@@ -1,5 +1,5 @@
 /* ==========================================================================
-   국가유산 인터랙티브 - CRT 효과 + 웹캠 배경
+   국가유산 인터랙티브 - CRT 효과 + 웹캠 배경 (수정)
    ========================================================================== */
 
 * {
@@ -18,7 +18,7 @@ body {
     user-select: none;
 }
 
-/* ✅ 전체 화면 웹캠 배경 */
+/* ✅ 전체 화면 웹캠 배경 - 반전 수정 */
 #webcam-bg {
     position: fixed;
     top: 0;
@@ -28,6 +28,7 @@ body {
     object-fit: cover;
     z-index: -1;
     opacity: 0.5;
+    transform: scaleX(-1); /* ✅ 수평 반전 */
 }
 
 /* ✅ CRT 스캔라인 오버레이 */
@@ -95,7 +96,7 @@ body {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scaleX(-1); /* ✅ 반전 보상 */
     text-align: center;
     z-index: 10;
     pointer-events: none;
@@ -130,10 +131,10 @@ body {
     pointer-events: none;
 }
 
-/* ✅ 개별 버튼 스타일 */
+/* ✅ 개별 버튼 스타일 - 겹침 방지 */
 .feature-btn {
     position: absolute;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     border: 2px solid #00ff00;
     color: #00ff00;
     padding: 1rem 1.5rem;
@@ -146,6 +147,8 @@ body {
     pointer-events: auto;
     backdrop-filter: blur(5px);
     font-family: 'Courier New', monospace;
+    min-width: 140px;
+    text-align: center;
 }
 
 .feature-btn:hover {
@@ -160,12 +163,22 @@ body {
     transform: scale(1.05);
 }
 
+/* ✅ 버튼 위치 - 겹치지 않게 조정 */
+.feature-btn[data-feature="1"] { top: 10%; left: 5%; }
+.feature-btn[data-feature="2"] { top: 10%; right: 5%; }
+.feature-btn[data-feature="3"] { top: 25%; left: 3%; }
+.feature-btn[data-feature="4"] { top: 25%; right: 3%; }
+.feature-btn[data-feature="5"] { top: 40%; left: 5%; }
+.feature-btn[data-feature="6"] { top: 40%; right: 5%; }
+.feature-btn[data-feature="7"] { top: 55%; left: 3%; }
+.feature-btn[data-feature="8"] { top: 55%; right: 3%; }
+
 /* ✅ 초록색 원형 게이지 */
 #touch-gauge {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scaleX(-1); /* ✅ 반전 보상 */
     z-index: 100;
     display: none;
 }
@@ -202,7 +215,7 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scaleX(-1); /* ✅ 반전 보상 */
     color: #00ff00;
     font-weight: bold;
     font-size: 1.2rem;
@@ -229,7 +242,7 @@ body {
     display: flex;
 }
 
-/* ✅ 로딩 오버레이 (CRT 효과) */
+/* ✅ 로딩 오버레이 */
 #loading-overlay {
     position: fixed;
     top: 0;
@@ -283,7 +296,7 @@ body {
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
 }
 
-/* ✅ CRT 효과 클래스 (기능 내부에서 적용) */
+/* ✅ CRT 효과 클래스 */
 .crt-effect {
     position: relative;
 }
@@ -323,6 +336,17 @@ body {
     font-family: 'Courier New', monospace;
 }
 
+/* ✅ 손 골격 표시용 캔버스 */
+#hand-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+}
+
 /* ✅ 버튼 위치 애니메이션 */
 @keyframes float {
     0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -340,188 +364,29 @@ body {
 
 /* ✅ 반응형 디자인 */
 @media (max-width: 768px) {
-    .title-overlay h1 {
-        font-size: 2rem;
-    }
-    
-    .title-overlay p {
-        font-size: 1rem;
-    }
+    .title-overlay h1 { font-size: 2rem; }
+    .title-overlay p { font-size: 1rem; }
     
     .feature-btn {
         font-size: 0.85rem;
         padding: 0.7rem 1rem;
+        min-width: 120px;
     }
     
-    .feature-btn[data-feature="1"] { top: 10%; left: 5%; }
-    .feature-btn[data-feature="2"] { top: 10%; right: 5%; }
-    .feature-btn[data-feature="3"] { top: 25%; left: 3%; }
-    .feature-btn[data-feature="4"] { top: 25%; right: 5%; }
-    .feature-btn[data-feature="5"] { top: 40%; left: 3%; }
-    .feature-btn[data-feature="6"] { top: 40%; right: 3%; }
-    .feature-btn[data-feature="7"] { top: 55%; left: 5%; }
-    .feature-btn[data-feature="8"] { top: 55%; right: 5%; }
+    .feature-btn[data-feature="1"] { top: 8%; left: 3%; }
+    .feature-btn[data-feature="2"] { top: 8%; right: 3%; }
+    .feature-btn[data-feature="3"] { top: 20%; left: 2%; }
+    .feature-btn[data-feature="4"] { top: 20%; right: 2%; }
+    .feature-btn[data-feature="5"] { top: 35%; left: 3%; }
+    .feature-btn[data-feature="6"] { top: 35%; right: 3%; }
+    .feature-btn[data-feature="7"] { top: 50%; left: 2%; }
+    .feature-btn[data-feature="8"] { top: 50%; right: 2%; }
     
-    .gauge-svg {
-        width: 150px;
-        height: 150px;
-    }
-    
-    #touch-text {
-        font-size: 1rem;
-    }
-    
-    .loading-bar {
-        width: 300px;
-    }
-    
-    .loading-text {
-        font-size: 1.5rem;
-    }
+    .gauge-svg { width: 150px; height: 150px; }
+    #touch-text { font-size: 1rem; }
+    .loading-bar { width: 300px; }
+    .loading-text { font-size: 1.5rem; }
 }
 
 /* ✅ 스크롤바 숨김 */
-::-webkit-scrollbar {
-    display: none;
-}
-
-/* ✅ 인크레디박스 스타일 */
-.instrument-panel {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.instruments-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
-}
-
-.instrument-btn {
-    background: rgba(0, 50, 0, 0.8);
-    border: 2px solid #00ff00;
-    color: #00ff00;
-    padding: 1.5rem;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Courier New', monospace;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-}
-
-.instrument-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
-}
-
-.instrument-btn.playing {
-    background: rgba(0, 100, 0, 0.9);
-    transform: scale(1.15);
-    box-shadow: 0 0 35px rgba(0, 255, 0, 0.8);
-}
-
-.instrument-btn .key {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.instrument-btn .name {
-    font-size: 0.9rem;
-}
-
-/* ✅ 단청 패널 */
-.dancheong-panel {
-    text-align: center;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.dancheong-canvas-container {
-    position: relative;
-    margin: 2rem auto;
-    border: 2px solid #00ff00;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-}
-
-/* ✅ 보존과학 체험 */
-.conservation-experience {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.artifact-selector {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin: 2rem 0;
-    flex-wrap: wrap;
-}
-
-.artifact-selector button {
-    background: rgba(0, 50, 0, 0.8);
-    border: 2px solid #00ff00;
-    color: #00ff00;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
-    font-family: 'Courier New', monospace;
-}
-
-.artifact-selector button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
-}
-
-.tool-panel {
-    background: rgba(0, 50, 0, 0.2);
-    border: 2px solid #00ff00;
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin: 2rem 0;
-}
-
-.tools-grid {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-}
-
-.tool-btn {
-    background: #002200;
-    border: 2px solid #00ff00;
-    color: #00ff00;
-    padding: 0.8rem 1.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Courier New', monospace;
-}
-
-.tool-btn:hover,
-.tool-btn.selected {
-    background: #004400;
-    border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
-}
-
-#conservation-canvas {
-    border: 2px solid #00ff00;
-    border-radius: 10px;
-    background: #000;
-    cursor: crosshair;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-}
+::-webkit-scrollbar { display: none; }
