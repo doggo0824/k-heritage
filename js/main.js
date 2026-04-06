@@ -23,7 +23,7 @@ class CulturalHeritageApp {
         this.isHandDetectionReady = false;
         this.handCanvas = null;
         this.handCtx = null;
-        this.currentLandmarks = null; // ✅ 현재 손 랜드마크 저장
+        this.currentLandmarks = null;
         this.init();
     }
     
@@ -221,10 +221,9 @@ class CulturalHeritageApp {
         let foundButton = null;
         let currentHand = null;
         
-        // ✅ multiHandLandmarks 의 첫 번째 손을 사용
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            currentHand = results.multiHandLandmarks[0]; // ✅ 현재 손을 저장
-            this.currentLandmarks = currentHand; // ✅ class 변수에도 저장
+            currentHand = results.multiHandLandmarks[0];
+            this.currentLandmarks = currentHand;
             
             for (const landmarks of results.multiHandLandmarks) {
                 const indexFingerTip = landmarks[8];
@@ -235,7 +234,6 @@ class CulturalHeritageApp {
                 }
             }
             
-            // ✅ 손 골격 그리기
             this.drawHandSkeleton(currentHand);
         }
         
@@ -320,6 +318,7 @@ class CulturalHeritageApp {
     }
     
     findButtonAtPosition(landmark, buttons) {
+        // ✅ 좌표 변환: MediaPipe 는 0-1 범위를 사용
         const indexX = landmark.x * window.innerWidth;
         const indexY = landmark.y * window.innerHeight;
         
