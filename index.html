@@ -11,37 +11,42 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1640026159/drawing_utils.js"></script>
 </head>
 <body>
+    <!-- ✅ 웹캠 배경 비디오 -->
+    <video id="webcam-bg" autoplay playsinline muted></video>
+    
     <div id="app">
-        <header class="main-header">
-            <h1>🏛️ 국가유산 인터랙티브 체험</h1>
-            <nav class="feature-nav" id="feature-nav">
-                <button data-feature="1">단청 물결</button>
-                <button data-feature="2">국가유산 CRT</button>
-                <button data-feature="3">색즉시공</button>
-                <button data-feature="4">인크레디박스</button>
-                <button data-feature="5">인생네컷</button>
-                <button data-feature="6">사관 LLM</button>
-                <button data-feature="7">보존과학</button>
-                <button data-feature="8">인터렉티브</button>
-            </nav>
-        </header>
-        <main id="feature-container">
-            <div class="welcome-screen">
-                <h2>✅ 웹사이트가 정상 로드되었습니다!</h2>
-                <p>👆 손가락으로 버튼을 3 초간 터치하세요</p>
-                <!-- ✅ 추가: 터치 진행 표시줄 -->
-                <div id="touch-indicator" style="display:none; margin-top:20px;">
-                    <div style="width:200px; height:10px; background:#444; border-radius:5px; margin:0 auto;">
-                        <div id="touch-progress" style="width:0%; height:100%; background:#d4af37; border-radius:5px; transition:width 0.1s;"></div>
-                    </div>
-                    <p id="touch-text" style="text-align:center; margin-top:10px;">터치 중...</p>
-                </div>
-            </div>
-        </main>
-        <div id="webcam-container" style="display:none;">
-            <video id="webcam" autoplay playsinline muted></video>
-            <canvas id="output-canvas"></canvas>
+        <!-- ✅ 화면 중앙 제목 -->
+        <div class="title-overlay">
+            <h1>🏛️ 국가유산 인터랙티브</h1>
+            <p>손가락으로 버튼을 3 초간 터치하세요</p>
         </div>
+        
+        <!-- ✅ 흩어진 메뉴 버튼들 -->
+        <div class="feature-buttons">
+            <button class="feature-btn" data-feature="1" style="top: 15%; left: 10%;">단청 물결</button>
+            <button class="feature-btn" data-feature="2" style="top: 10%; right: 15%;">국가유산 CRT</button>
+            <button class="feature-btn" data-feature="3" style="top: 30%; left: 5%;">색즉시공</button>
+            <button class="feature-btn" data-feature="4" style="top: 35%; right: 8%;">인크레디박스</button>
+            <button class="feature-btn" data-feature="5" style="top: 50%; left: 8%;">인생네컷</button>
+            <button class="feature-btn" data-feature="6" style="top: 45%; right: 5%;">사관 LLM</button>
+            <button class="feature-btn" data-feature="7" style="top: 70%; left: 12%;">보존과학</button>
+            <button class="feature-btn" data-feature="8" style="top: 65%; right: 10%;">인터렉티브</button>
+        </div>
+        
+        <!-- ✅ 터치 진행 표시줄 -->
+        <div id="touch-indicator" style="display:none;">
+            <div class="touch-bar-container">
+                <div id="touch-progress"></div>
+            </div>
+            <p id="touch-text">터치 중...</p>
+        </div>
+        
+        <!-- ✅ 현재 실행 중인 기능 컨테이너 -->
+        <main id="feature-container">
+            <!-- 기능 실행 시 내용 채워짐 -->
+        </main>
+        
+        <!-- ✅ 푸터 -->
         <footer class="main-footer">
             <span>© 2026 국가유산 디지털 아카이브</span>
         </footer>
