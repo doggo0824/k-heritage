@@ -11,34 +11,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1640026159/drawing_utils.js"></script>
 </head>
 <body>
-    <!-- ✅ 웹캠 배경 비디오 -->
+    <!-- ✅ 전체 화면 웹캠 배경 -->
     <video id="webcam-bg" autoplay playsinline muted></video>
     
+    <!-- ✅ CRT 스캔라인 오버레이 -->
+    <div class="crt-overlay"></div>
+    
+    <!-- ✅ CRT 플리커 효과 -->
+    <div class="crt-flicker"></div>
+    
     <div id="app">
-        <!-- ✅ 화면 중앙 제목 -->
+        <!-- ✅ 중앙 제목 -->
         <div class="title-overlay">
             <h1>🏛️ 국가유산 인터랙티브</h1>
-            <p>손가락으로 버튼을 3 초간 터치하세요</p>
+            <p>검지 손가락으로 버튼을 3 초간 터치하세요</p>
         </div>
         
         <!-- ✅ 흩어진 메뉴 버튼들 -->
         <div class="feature-buttons">
-            <button class="feature-btn" data-feature="1" style="top: 15%; left: 10%;">단청 물결</button>
-            <button class="feature-btn" data-feature="2" style="top: 10%; right: 15%;">국가유산 CRT</button>
-            <button class="feature-btn" data-feature="3" style="top: 30%; left: 5%;">색즉시공</button>
-            <button class="feature-btn" data-feature="4" style="top: 35%; right: 8%;">인크레디박스</button>
-            <button class="feature-btn" data-feature="5" style="top: 50%; left: 8%;">인생네컷</button>
-            <button class="feature-btn" data-feature="6" style="top: 45%; right: 5%;">사관 LLM</button>
-            <button class="feature-btn" data-feature="7" style="top: 70%; left: 12%;">보존과학</button>
-            <button class="feature-btn" data-feature="8" style="top: 65%; right: 10%;">인터렉티브</button>
+            <button class="feature-btn" data-feature="1" data-sound="hover">단청 물결</button>
+            <button class="feature-btn" data-feature="2" data-sound="hover">국가유산 CRT</button>
+            <button class="feature-btn" data-feature="3" data-sound="hover">색즉시공</button>
+            <button class="feature-btn" data-feature="4" data-sound="hover">인크레디박스</button>
+            <button class="feature-btn" data-feature="5" data-sound="hover">인생네컷</button>
+            <button class="feature-btn" data-feature="6" data-sound="hover">사관 LLM</button>
+            <button class="feature-btn" data-feature="7" data-sound="hover">보존과학</button>
+            <button class="feature-btn" data-feature="8" data-sound="hover">인터렉티브</button>
         </div>
         
-        <!-- ✅ 터치 진행 표시줄 -->
-        <div id="touch-indicator" style="display:none;">
-            <div class="touch-bar-container">
-                <div id="touch-progress"></div>
-            </div>
-            <p id="touch-text">터치 중...</p>
+        <!-- ✅ 초록색 원형 게이지 (터치 시 표시) -->
+        <div id="touch-gauge" style="display:none;">
+            <svg viewBox="0 0 100 100" class="gauge-svg">
+                <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                <circle class="gauge-fill" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <div id="touch-text">터치 중...</div>
         </div>
         
         <!-- ✅ 현재 실행 중인 기능 컨테이너 -->
@@ -46,10 +53,36 @@
             <!-- 기능 실행 시 내용 채워짐 -->
         </main>
         
+        <!-- ✅ 로딩 오버레이 (CRT 효과) -->
+        <div id="loading-overlay" style="display:none;">
+            <div class="loading-crt">
+                <div class="loading-text">로딩 중...</div>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
+        </div>
+        
         <!-- ✅ 푸터 -->
         <footer class="main-footer">
             <span>© 2026 국가유산 디지털 아카이브</span>
         </footer>
+    </div>
+    
+    <!-- ✅ 소리 효과 (Base64 또는 URL) -->
+    <div id="sound-effects">
+        <audio id="sound-hover" preload="auto">
+            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
+        </audio>
+        <audio id="sound-touch" preload="auto">
+            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
+        </audio>
+        <audio id="sound-success" preload="auto">
+            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
+        </audio>
+        <audio id="sound-instrument" preload="auto">
+            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
+        </audio>
     </div>
     
     <script src="./js/feature1-dancheong.js"></script>
