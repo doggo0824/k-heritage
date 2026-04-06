@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전통문양 인생네컷</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; display: flex; flex-direction: column; align-items: center; color: white; }
+        #webcam { width: 400px; height: 300px; background-color: black; margin-top: 20px; object-fit: cover; }
+        #capture-btn { margin: 20px; padding: 15px 30px; font-size: 18px; cursor: pointer; background-color: #8b0000; color: white; border: none; border-radius: 5px; }
+        #result-frame { width: 300px; background: url('../assets/images/pattern-frame.png') repeat; padding: 20px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px; }
+        .photo-slot { width: 100%; height: 200px; background-color: #eee; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <video id="webcam" autoplay playsinline></video>
+    <button id="capture-btn">사진 촬영 시작 (3초 간격)</button>
+    <div id="result-frame">
+        <img class="photo-slot" id="slot-1" />
+        <img class="photo-slot" id="slot-2" />
+        <img class="photo-slot" id="slot-3" />
+        <img class="photo-slot" id="slot-4" />
+    </div>
+    <script>
+        const video = document.getElementById('webcam');
+        const slots = [document.getElementById('slot-1'), document.getElementById('slot-2'), document.getElementById('slot-3'), document.getElementById('slot-4')];
+        let currentSlot = 0;
+
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+            video.srcObject = stream;
+        });
+
+        document.getElementById('capture-btn').addEventListener('click', () => {
+            currentSlot = 0;
+            const captureInterval = setInterval(() => {
+                if (currentSlot >= 4) {
+                    clearInterval(captureInterval);
+                    html2canvas(document.getElementById('result-frame')).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'heritage-4cut.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    });
+                    return;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                slots[currentSlot].src = canvas.toDataURL('image/jpeg');
+                currentSlot++;
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
