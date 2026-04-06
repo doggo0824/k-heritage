@@ -1,15 +1,13 @@
 /* ==========================================================================
-   국가유산 인터랙티브 체험 - 웹캠 배경 레이아웃
+   국가유산 인터랙티브 - CRT 효과 + 웹캠 배경
    ========================================================================== */
 
-/* 기본 리셋 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* 본문 배경 제거 */
 body {
     font-family: 'Noto Sans KR', sans-serif;
     background: #000;
@@ -17,9 +15,10 @@ body {
     min-height: 100vh;
     overflow: hidden;
     position: relative;
+    user-select: none;
 }
 
-/* ✅ 웹캠 배경 비디오 - 전체 화면 */
+/* ✅ 전체 화면 웹캠 배경 */
 #webcam-bg {
     position: fixed;
     top: 0;
@@ -28,8 +27,60 @@ body {
     height: 100%;
     object-fit: cover;
     z-index: -1;
-    opacity: 0.6;
-    filter: brightness(0.5);
+    opacity: 0.5;
+}
+
+/* ✅ CRT 스캔라인 오버레이 */
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 0, 0.03) 2px,
+        rgba(0, 255, 0, 0.03) 4px
+    );
+}
+
+/* ✅ CRT 플리커 효과 */
+.crt-flicker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+    pointer-events: none;
+    opacity: 0.03;
+    animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+    0% { opacity: 0.02; }
+    50% { opacity: 0.04; }
+    100% { opacity: 0.02; }
+}
+
+/* ✅ CRT 선 반사 효과 */
+.crt-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%,
+        rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
 }
 
 /* ✅ 앱 컨테이너 */
@@ -48,21 +99,24 @@ body {
     text-align: center;
     z-index: 10;
     pointer-events: none;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
 }
 
 .title-overlay h1 {
     font-size: 3rem;
-    color: #d4af37;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
     margin-bottom: 1rem;
     letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
 }
 
 .title-overlay p {
     font-size: 1.3rem;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
     opacity: 0.9;
+    font-family: 'Courier New', monospace;
 }
 
 /* ✅ 흩어진 버튼 컨테이너 */
@@ -79,79 +133,81 @@ body {
 /* ✅ 개별 버튼 스타일 */
 .feature-btn {
     position: absolute;
-    background: rgba(91, 58, 35, 0.9);
-    border: 3px solid #d4af37;
-    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ff00;
+    color: #00ff00;
     padding: 1rem 1.5rem;
     border-radius: 12px;
     cursor: pointer;
     font-size: 1rem;
     font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
     transition: all 0.3s ease;
     pointer-events: auto;
     backdrop-filter: blur(5px);
+    font-family: 'Courier New', monospace;
 }
 
 .feature-btn:hover {
     transform: scale(1.15) rotate(-2deg);
-    background: rgba(139, 105, 20, 0.95);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
-    border-color: #ffd700;
+    background: rgba(0, 50, 0, 0.9);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6);
+    border-color: #00ff00;
+    color: #00ff00;
 }
 
 .feature-btn:active {
     transform: scale(1.05);
 }
 
-/* ✅ 터치 진행 표시줄 */
-#touch-indicator {
+/* ✅ 초록색 원형 게이지 */
+#touch-gauge {
     position: fixed;
-    bottom: 100px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    background: rgba(91, 58, 35, 0.8);
-    border: 3px solid #d4af37;
-    border-radius: 15px;
-    padding: 1.5rem 2rem;
+    transform: translate(-50%, -50%);
     z-index: 100;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    animation: pulse 0.5s infinite alternate;
+    display: none;
 }
 
-@keyframes pulse {
-    from { 
-        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
-    }
-    to { 
-        box-shadow: 0 10px 40px rgba(212, 175, 55, 0.6);
-    }
+.gauge-svg {
+    width: 200px;
+    height: 200px;
+    animation: pulse-gauge 0.5s infinite alternate;
 }
 
-.touch-bar-container {
-    width: 300px;
-    height: 15px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 10px;
+@keyframes pulse-gauge {
+    from { filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5)); }
+    to { filter: drop-shadow(0 0 25px rgba(0, 255, 0, 0.8)); }
 }
 
-#touch-progress {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg, #d4af37, #ffd700);
-    border-radius: 10px;
-    transition: width 0.1s ease-out;
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+.gauge-bg {
+    fill: none;
+    stroke: rgba(0, 255, 0, 0.2);
+    stroke-width: 8;
+}
+
+.gauge-fill {
+    fill: none;
+    stroke: #00ff00;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.1s ease-out;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.8));
 }
 
 #touch-text {
-    color: #d4af37;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00ff00;
     font-weight: bold;
-    font-size: 1.1rem;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    font-family: 'Courier New', monospace;
 }
 
 /* ✅ 기능 컨테이너 */
@@ -162,7 +218,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: 50;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     display: none;
     justify-content: center;
     align-items: center;
@@ -173,19 +229,98 @@ body {
     display: flex;
 }
 
+/* ✅ 로딩 오버레이 (CRT 효과) */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 200;
+    background: #000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#loading-overlay.active {
+    display: flex;
+}
+
+.loading-crt {
+    text-align: center;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+}
+
+.loading-text {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+.loading-bar {
+    width: 400px;
+    height: 20px;
+    background: rgba(0, 50, 0, 0.5);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #00ff80);
+    width: 0%;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+}
+
+/* ✅ CRT 효과 클래스 (기능 내부에서 적용) */
+.crt-effect {
+    position: relative;
+}
+
+.crt-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 0, 0.1) 2px,
+        rgba(0, 255, 0, 0.1) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.5;
+}
+
 /* ✅ 푸터 */
 .main-footer {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(91, 58, 35, 0.8);
+    background: rgba(0, 0, 0, 0.7);
     padding: 0.5rem 1.5rem;
     border-radius: 20px;
-    border: 2px solid #d4af37;
+    border: 2px solid #00ff00;
     font-size: 0.85rem;
-    color: #ccc;
+    color: #00ff00;
     z-index: 20;
+    font-family: 'Courier New', monospace;
 }
 
 /* ✅ 버튼 위치 애니메이션 */
@@ -218,7 +353,6 @@ body {
         padding: 0.7rem 1rem;
     }
     
-    /* 모바일에서 버튼 위치 조정 */
     .feature-btn[data-feature="1"] { top: 10%; left: 5%; }
     .feature-btn[data-feature="2"] { top: 10%; right: 5%; }
     .feature-btn[data-feature="3"] { top: 25%; left: 3%; }
@@ -228,17 +362,166 @@ body {
     .feature-btn[data-feature="7"] { top: 55%; left: 5%; }
     .feature-btn[data-feature="8"] { top: 55%; right: 5%; }
     
-    #touch-indicator {
-        bottom: 80px;
-        padding: 1rem 1.5rem;
+    .gauge-svg {
+        width: 150px;
+        height: 150px;
     }
     
-    .touch-bar-container {
-        width: 200px;
+    #touch-text {
+        font-size: 1rem;
+    }
+    
+    .loading-bar {
+        width: 300px;
+    }
+    
+    .loading-text {
+        font-size: 1.5rem;
     }
 }
 
 /* ✅ 스크롤바 숨김 */
 ::-webkit-scrollbar {
     display: none;
+}
+
+/* ✅ 인크레디박스 스타일 */
+.instrument-panel {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.instruments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.instrument-btn {
+    background: rgba(0, 50, 0, 0.8);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    padding: 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+.instrument-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+}
+
+.instrument-btn.playing {
+    background: rgba(0, 100, 0, 0.9);
+    transform: scale(1.15);
+    box-shadow: 0 0 35px rgba(0, 255, 0, 0.8);
+}
+
+.instrument-btn .key {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.instrument-btn .name {
+    font-size: 0.9rem;
+}
+
+/* ✅ 단청 패널 */
+.dancheong-panel {
+    text-align: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.dancheong-canvas-container {
+    position: relative;
+    margin: 2rem auto;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+/* ✅ 보존과학 체험 */
+.conservation-experience {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.artifact-selector {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.artifact-selector button {
+    background: rgba(0, 50, 0, 0.8);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+}
+
+.artifact-selector button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+}
+
+.tool-panel {
+    background: rgba(0, 50, 0, 0.2);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.tools-grid {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.tool-btn {
+    background: #002200;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+}
+
+.tool-btn:hover,
+.tool-btn.selected {
+    background: #004400;
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+}
+
+#conservation-canvas {
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    background: #000;
+    cursor: crosshair;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
