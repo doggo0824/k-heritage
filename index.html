@@ -14,7 +14,7 @@
     <div id="app">
         <header class="main-header">
             <h1>🏛️ 국가유산 인터랙티브 체험</h1>
-            <nav class="feature-nav">
+            <nav class="feature-nav" id="feature-nav">
                 <button data-feature="1">단청 물결</button>
                 <button data-feature="2">국가유산 CRT</button>
                 <button data-feature="3">색즉시공</button>
@@ -28,10 +28,13 @@
         <main id="feature-container">
             <div class="welcome-screen">
                 <h2>✅ 웹사이트가 정상 로드되었습니다!</h2>
-                <p>8 가지 국가유산 기반 인터랙티브 체험</p>
-                <!-- ✅ 추가: api-status 요소 -->
-                <div id="api-status" class="api-status warn">
-                    <span>⚠️ API 키가 설정되지 않았습니다.</span>
+                <p>👆 손가락으로 버튼을 3 초간 터치하세요</p>
+                <!-- ✅ 추가: 터치 진행 표시줄 -->
+                <div id="touch-indicator" style="display:none; margin-top:20px;">
+                    <div style="width:200px; height:10px; background:#444; border-radius:5px; margin:0 auto;">
+                        <div id="touch-progress" style="width:0%; height:100%; background:#d4af37; border-radius:5px; transition:width 0.1s;"></div>
+                    </div>
+                    <p id="touch-text" style="text-align:center; margin-top:10px;">터치 중...</p>
                 </div>
             </div>
         </main>
@@ -44,7 +47,6 @@
         </footer>
     </div>
     
-    <!-- Feature JS 파일들 -->
     <script src="./js/feature1-dancheong.js"></script>
     <script src="./js/feature2-crt.js"></script>
     <script src="./js/feature3-seokjeok.js"></script>
@@ -53,8 +55,6 @@
     <script src="./js/feature6-sagwan-llm.js"></script>
     <script src="./js/feature7-conservation.js"></script>
     <script src="./js/feature8-interactive.js"></script>
-    
-    <!-- 메인 앱 -->
     <script src="./js/main.js"></script>
 </body>
 </html>
