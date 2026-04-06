@@ -21,16 +21,17 @@ class CulturalHeritageApp {
         this.audioContext = null;
         this.hands = null;
         this.isHandDetectionReady = false;
+        this.handCanvas = null;
+        this.handCtx = null;
         this.init();
     }
     
     async init() {
         console.log('=== init() called ===');
         
-        // 1. 오디오 설정
         this.setupAudio();
+        this.setupHandCanvas(); // ✅ 손 골격 표시용 캔버스 생성
         
-        // 2. 웹캠 시작 및 대기
         const videoReady = await this.startWebcam();
         console.log('Webcam ready:', videoReady);
         
@@ -39,11 +40,30 @@ class CulturalHeritageApp {
             return;
         }
         
-        // 3. 손 인식 설정 (비디오가 준비된 후)
         await this.setupHandGesture();
         console.log('Hand gesture setup complete');
         
         console.log('=== App initialized ===');
+    }
+    
+    setupHandCanvas() {
+        // ✅ 손 골격을 표시할 캔버스 생성
+        const canvas = document.createElement('canvas');
+        canvas.id = 'hand-canvas';
+        document.body.appendChild(canvas);
+        
+        this.handCanvas = canvas;
+        this.handCtx = canvas.getContext('2d');
+        this.resizeHandCanvas();
+        
+        window.addEventListener('resize', () => this.resizeHandCanvas());
+    }
+    
+    resizeHandCanvas() {
+        if (this.handCanvas) {
+            this.handCanvas.width = window.innerWidth;
+            this.handCanvas.height = window.innerHeight;
+        }
     }
     
     startWebcam() {
@@ -60,7 +80,6 @@ class CulturalHeritageApp {
             .then(stream => {
                 video.srcObject = stream;
                 
-                // 비디오가 실제로 재생될 때까지 대기
                 video.onloadedmetadata = () => {
                     console.log('Video metadata loaded');
                     video.play().then(() => {
@@ -142,7 +161,6 @@ class CulturalHeritageApp {
         const progressBar = document.querySelector('.gauge-fill');
         const touchText = document.getElementById('touch-text');
         
-        // MediaPipe Hands 로드 확인
         if (typeof Hands === 'undefined') {
             console.error('❌ MediaPipe Hands not loaded!');
             alert('MediaPipe 라이브러리를 로드할 수 없습니다. 페이지를 새로고침해주세요.');
@@ -151,7 +169,6 @@ class CulturalHeritageApp {
         
         console.log('MediaPipe Hands detected');
         
-        // Hands 인스턴스 생성
         this.hands = new Hands({
             locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
@@ -161,13 +178,12 @@ class CulturalHeritageApp {
         this.hands.setOptions({
             maxNumHands: 2,
             modelComplexity: 1,
-            minDetectionConfidence: 0.5,  // 낮게 설정하여 인식률 향상
+            minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
         
         this.hands.onResults(this.onHandResults.bind(this, buttons, gauge, progressBar, touchText));
         
-        // 비디오가 재생된 후에만 손 인식 시작
         if (video.readyState >= 2) {
             console.log('Video ready, starting detection loop');
             this.startDetectionLoop(video);
@@ -199,22 +215,26 @@ class CulturalHeritageApp {
     onHandResults(buttons, gauge, progressBar, touchText, results) {
         if (!this.isHandDetectionReady) return;
         
+        const ctx = this.handCtx;
+        ctx.clearRect(0, 0, this.handCanvas.width, this.handCanvas.height);
+        
         let foundButton = null;
         
-        // 손 랜드마크가 있는지 확인
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            // 첫 번째 손을 사용
-            const landmarks = results.multiHandLandmarks[0];
+            for (const landmarks of results.multiHandLandmarks) {
+                const indexFingerTip = landmarks[8];
+                const button = this.findButtonAtPosition(indexFingerTip, buttons);
+                if (button) {
+                    foundButton = button;
+                    break;
+                }
+            }
             
-            // 검지 손가락 끝 (landmark 8)
-            const indexFingerTip = landmarks[8];
-            
-            // 버튼 위치 확인
-            foundButton = this.findButtonAtPosition(indexFingerTip, buttons);
+            // ✅ 손 골격 그리기
+            this.drawHandSkeleton(landmarks);
         }
         
         if (foundButton) {
-            // 손가락이 버튼 위에 있음
             if (!this.touchStartTime) {
                 this.touchStartTime = Date.now();
                 gauge.style.display = 'block';
@@ -238,9 +258,64 @@ class CulturalHeritageApp {
                 this.resetTouch();
             }
         } else {
-            // 손가락이 버튼에서 떨어짐
             this.resetTouch();
         }
+    }
+    
+    // ✅ 손 골격 그리기 함수 추가
+    drawHandSkeleton(landmarks) {
+        const ctx = this.handCtx;
+        
+        if (!landmarks || landmarks.length === 0) return;
+        
+        // 손가락 연결선 그리기
+        const connections = [
+            [0, 1], [1, 2], [2, 3], [3, 4],     // 엄지
+            [0, 5], [5, 6], [6, 7], [7, 8],     // 검지
+            [0, 9], [9, 10], [10, 11], [11, 12], // 중지
+            [0, 13], [13, 14], [14, 15], [15, 16], // 약지
+            [0, 17], [17, 18], [18, 19], [19, 20]  // 새끼손가락
+        ];
+        
+        ctx.strokeStyle = '#00ff00';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ff00';
+        
+        for (const [start, end] of connections) {
+            const startX = landmarks[start].x * this.handCanvas.width;
+            const startY = landmarks[start].y * this.handCanvas.height;
+            const endX = landmarks[end].x * this.handCanvas.width;
+            const endY = landmarks[end].y * this.handCanvas.height;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+        }
+        
+        // 랜드마크 점 그리기
+        ctx.fillStyle = '#00ff00';
+        for (const landmark of landmarks) {
+            const x = landmark.x * this.handCanvas.width;
+            const y = landmark.y * this.handCanvas.height;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        // 검지 손가락 끝 강조
+        const indexTip = landmarks[8];
+        const ix = indexTip.x * this.handCanvas.width;
+        const iy = indexTip.y * this.handCanvas.height;
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(ix, iy, 8, 0, 2 * Math.PI);
+        ctx.stroke();
     }
     
     findButtonAtPosition(landmark, buttons) {
@@ -275,13 +350,8 @@ class CulturalHeritageApp {
         overlay.classList.add('active');
         progressBar.style.width = '0%';
         
-        setTimeout(() => {
-            progressBar.style.width = '50%';
-        }, 500);
-        
-        setTimeout(() => {
-            progressBar.style.width = '100%';
-        }, 1500);
+        setTimeout(() => { progressBar.style.width = '50%'; }, 500);
+        setTimeout(() => { progressBar.style.width = '100%'; }, 1500);
     }
     
     hideLoadingOverlay() {
