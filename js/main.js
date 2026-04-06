@@ -19,28 +19,64 @@ class CulturalHeritageApp {
         this.touchStartTime = null;
         this.TOUCH_DURATION = 3000;
         this.audioContext = null;
+        this.hands = null;
+        this.isHandDetectionReady = false;
         this.init();
     }
     
     async init() {
         console.log('=== init() called ===');
-        this.startWebcam();
+        
+        // 1. 오디오 설정
         this.setupAudio();
-        this.setupHandGesture();
+        
+        // 2. 웹캠 시작 및 대기
+        const videoReady = await this.startWebcam();
+        console.log('Webcam ready:', videoReady);
+        
+        if (!videoReady) {
+            alert('웹캠을 사용할 수 없습니다. 카메라 권한을 확인해주세요.');
+            return;
+        }
+        
+        // 3. 손 인식 설정 (비디오가 준비된 후)
+        await this.setupHandGesture();
+        console.log('Hand gesture setup complete');
+        
         console.log('=== App initialized ===');
     }
     
     startWebcam() {
-        const video = document.getElementById('webcam-bg');
-        navigator.mediaDevices.getUserMedia({ video: true })
+        return new Promise((resolve) => {
+            const video = document.getElementById('webcam-bg');
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                } 
+            })
             .then(stream => {
                 video.srcObject = stream;
-                console.log('Webcam started');
+                
+                // 비디오가 실제로 재생될 때까지 대기
+                video.onloadedmetadata = () => {
+                    console.log('Video metadata loaded');
+                    video.play().then(() => {
+                        console.log('Video playing');
+                        resolve(true);
+                    }).catch(err => {
+                        console.error('Video play failed:', err);
+                        resolve(false);
+                    });
+                };
             })
             .catch(err => {
                 console.error('Webcam error:', err);
-                alert('웹캠 접근 권한이 필요합니다.');
+                resolve(false);
             });
+        });
     }
     
     setupAudio() {
@@ -54,6 +90,10 @@ class CulturalHeritageApp {
     
     playSound(type) {
         if (!this.audioContext) return;
+        
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
         
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
@@ -90,69 +130,96 @@ class CulturalHeritageApp {
                 oscillator.start(this.audioContext.currentTime);
                 oscillator.stop(this.audioContext.currentTime + 0.5);
                 break;
-            default:
-                oscillator.frequency.value = 440;
-                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-                oscillator.start(this.audioContext.currentTime);
-                oscillator.stop(this.audioContext.currentTime + 0.1);
         }
     }
     
-    setupHandGesture() {
+    async setupHandGesture() {
         console.log('=== setupHandGesture() ===');
+        
         const video = document.getElementById('webcam-bg');
         const buttons = document.querySelectorAll('.feature-btn');
         const gauge = document.getElementById('touch-gauge');
         const progressBar = document.querySelector('.gauge-fill');
         const touchText = document.getElementById('touch-text');
         
-        const hands = new Hands({
+        // MediaPipe Hands 로드 확인
+        if (typeof Hands === 'undefined') {
+            console.error('❌ MediaPipe Hands not loaded!');
+            alert('MediaPipe 라이브러리를 로드할 수 없습니다. 페이지를 새로고침해주세요.');
+            return;
+        }
+        
+        console.log('MediaPipe Hands detected');
+        
+        // Hands 인스턴스 생성
+        this.hands = new Hands({
             locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
             }
         });
         
-        hands.setOptions({
+        this.hands.setOptions({
             maxNumHands: 2,
             modelComplexity: 1,
-            minDetectionConfidence: 0.7,
+            minDetectionConfidence: 0.5,  // 낮게 설정하여 인식률 향상
             minTrackingConfidence: 0.5
         });
         
-        hands.onResults(this.onHandResults.bind(this, buttons, gauge, progressBar, touchText));
+        this.hands.onResults(this.onHandResults.bind(this, buttons, gauge, progressBar, touchText));
         
-        video.addEventListener('play', async () => {
-            const loop = async () => {
-                if (video.readyState >= 2) {
-                    await hands.send({ image: video });
+        // 비디오가 재생된 후에만 손 인식 시작
+        if (video.readyState >= 2) {
+            console.log('Video ready, starting detection loop');
+            this.startDetectionLoop(video);
+        } else {
+            video.addEventListener('loadeddata', () => {
+                console.log('Video loaded, starting detection loop');
+                this.startDetectionLoop(video);
+            });
+        }
+    }
+    
+    startDetectionLoop(video) {
+        const loop = async () => {
+            try {
+                if (video.readyState >= 2 && video.paused === false) {
+                    await this.hands.send({ image: video });
                 }
                 requestAnimationFrame(loop);
-            };
-            loop();
-        });
+            } catch (error) {
+                console.error('Detection loop error:', error);
+            }
+        };
+        
+        requestAnimationFrame(loop);
+        this.isHandDetectionReady = true;
+        console.log('Detection loop started');
     }
     
     onHandResults(buttons, gauge, progressBar, touchText, results) {
+        if (!this.isHandDetectionReady) return;
+        
         let foundButton = null;
         
-        if (results.multiHandLandmarks) {
-            for (const landmarks of results.multiHandLandmarks) {
-                const indexFingerTip = landmarks[8];
-                const button = this.findButtonAtPosition(indexFingerTip, buttons);
-                if (button) {
-                    foundButton = button;
-                    break;
-                }
-            }
+        // 손 랜드마크가 있는지 확인
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            // 첫 번째 손을 사용
+            const landmarks = results.multiHandLandmarks[0];
+            
+            // 검지 손가락 끝 (landmark 8)
+            const indexFingerTip = landmarks[8];
+            
+            // 버튼 위치 확인
+            foundButton = this.findButtonAtPosition(indexFingerTip, buttons);
         }
         
         if (foundButton) {
+            // 손가락이 버튼 위에 있음
             if (!this.touchStartTime) {
                 this.touchStartTime = Date.now();
                 gauge.style.display = 'block';
                 this.playSound('touch');
-                console.log('Touch started on button:', foundButton.dataset.feature);
+                console.log('✓ Touch started on button:', foundButton.dataset.feature);
             }
             
             const elapsed = Date.now() - this.touchStartTime;
@@ -171,6 +238,7 @@ class CulturalHeritageApp {
                 this.resetTouch();
             }
         } else {
+            // 손가락이 버튼에서 떨어짐
             this.resetTouch();
         }
     }
@@ -240,7 +308,7 @@ class CulturalHeritageApp {
                 container.classList.add('active');
                 container.innerHTML = '';
             }
-            console.log('Feature activated successfully!');
+            console.log('✓ Feature activated successfully!');
         } else {
             console.error('❌ FeatureClass NOT found for:', id);
             alert('기능이 로드되지 않았습니다.');
@@ -249,10 +317,6 @@ class CulturalHeritageApp {
     
     cleanupFeature() {
         console.log('=== cleanupFeature() ===');
-        const video = document.getElementById('webcam-bg');
-        if (video && video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-        }
         const container = document.getElementById('feature-container');
         if (container) {
             container.innerHTML = '';
