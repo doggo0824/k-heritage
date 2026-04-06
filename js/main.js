@@ -17,61 +17,23 @@ class CulturalHeritageApp {
         };
         this.apiKey = 'A';
         this.touchStartTime = null;
-        this.touchTimer = null;
-        this.TOUCH_DURATION = 3000; // 3 초
+        this.TOUCH_DURATION = 3000;
         this.init();
     }
     
     async init() {
         console.log('=== init() called ===');
-        this.checkAPIKey();
-        this.setupNavigation();
+        this.startWebcam();
         this.setupHandGesture();
         console.log('=== App initialized ===');
     }
     
-    checkAPIKey() {
-        const statusEl = document.getElementById('api-status');
-        if (statusEl) {
-            if (this.apiKey && this.apiKey !== 'A') {
-                statusEl.className = 'api-status ok';
-                statusEl.innerHTML = '<span>✅ API 키 설정 완료</span>';
-            } else {
-                statusEl.className = 'api-status warn';
-                statusEl.innerHTML = '<span>⚠️ API 키가 설정되지 않았습니다.</span>';
-            }
-        }
-    }
-    
-    setupNavigation() {
-        console.log('=== setupNavigation() ===');
-        const buttons = document.querySelectorAll('.feature-nav button');
-        console.log('Buttons found:', buttons.length);
-        
-        // ✅ 수정: 클릭 이벤트 제거, 터치 감지로 대체
-        buttons.forEach((btn, index) => {
-            btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'scale(1.1)';
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'scale(1)';
-            });
-        });
-    }
-    
-    setupHandGesture() {
-        console.log('=== setupHandGesture() ===');
-        const video = document.getElementById('webcam');
-        const indicator = document.getElementById('touch-indicator');
-        const progressBar = document.getElementById('touch-progress');
-        const touchText = document.getElementById('touch-text');
-        
-        // 웹캠 시작
+    startWebcam() {
+        const video = document.getElementById('webcam-bg');
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
                 console.log('Webcam started');
-                this.startHandDetection(video, indicator, progressBar, touchText);
             })
             .catch(err => {
                 console.error('Webcam error:', err);
@@ -79,7 +41,14 @@ class CulturalHeritageApp {
             });
     }
     
-    async startHandDetection(video, indicator, progressBar, touchText) {
+    setupHandGesture() {
+        console.log('=== setupHandGesture() ===');
+        const video = document.getElementById('webcam-bg');
+        const buttons = document.querySelectorAll('.feature-btn');
+        const indicator = document.getElementById('touch-indicator');
+        const progressBar = document.getElementById('touch-progress');
+        const touchText = document.getElementById('touch-text');
+        
         const hands = new Hands({
             locateFile: (file) => {
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
@@ -93,7 +62,7 @@ class CulturalHeritageApp {
             minTrackingConfidence: 0.5
         });
         
-        hands.onResults(this.onHandResults.bind(this, indicator, progressBar, touchText));
+        hands.onResults(this.onHandResults.bind(this, buttons, indicator, progressBar, touchText));
         
         video.addEventListener('play', async () => {
             const loop = async () => {
@@ -106,8 +75,7 @@ class CulturalHeritageApp {
         });
     }
     
-    onHandResults(indicator, progressBar, touchText, results) {
-        const buttons = document.querySelectorAll('.feature-nav button');
+    onHandResults(buttons, indicator, progressBar, touchText, results) {
         let foundButton = null;
         
         if (results.multiHandLandmarks) {
@@ -122,7 +90,6 @@ class CulturalHeritageApp {
         }
         
         if (foundButton) {
-            // ✅ 손가락이 버튼 위에 있음
             if (!this.touchStartTime) {
                 this.touchStartTime = Date.now();
                 indicator.style.display = 'block';
@@ -134,13 +101,11 @@ class CulturalHeritageApp {
             progressBar.style.width = progress + '%';
             touchText.textContent = `터치 중... ${(elapsed / 1000).toFixed(1)}초`;
             
-            // ✅ 3 초 도달
             if (elapsed >= this.TOUCH_DURATION) {
                 this.activateFeature(foundButton.dataset.feature);
                 this.resetTouch();
             }
         } else {
-            // ✅ 손가락이 버튼에서 떨어짐
             this.resetTouch();
         }
     }
@@ -183,9 +148,10 @@ class CulturalHeritageApp {
         if (FeatureClass) {
             console.log('Creating new instance...');
             this.currentFeature = new FeatureClass(this.apiKey);
-            const webcamContainer = document.getElementById('webcam-container');
-            if (webcamContainer) {
-                webcamContainer.style.display = 'block';
+            const container = document.getElementById('feature-container');
+            if (container) {
+                container.classList.add('active');
+                container.innerHTML = '';
             }
             console.log('Feature activated successfully!');
         } else {
@@ -196,13 +162,14 @@ class CulturalHeritageApp {
     
     cleanupFeature() {
         console.log('=== cleanupFeature() ===');
-        const video = document.getElementById('webcam');
+        const video = document.getElementById('webcam-bg');
         if (video && video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
         }
         const container = document.getElementById('feature-container');
         if (container) {
             container.innerHTML = '';
+            container.classList.remove('active');
         }
     }
 }
