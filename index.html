@@ -5,29 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>k-heritage</title>
     <link rel="stylesheet" href="./css/style.css">
+    <!-- ✅ CDN 로드 순서: Three.js → MediaPipe → drawing_utils -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640026159/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1640026159/drawing_utils.js"></script>
 </head>
 <body>
-    <!-- ✅ 전체 화면 웹캠 배경 -->
+    <!-- 전체 화면 웹캠 배경 -->
     <video id="webcam-bg" autoplay playsinline muted></video>
     
-    <!-- ✅ CRT 스캔라인 오버레이 -->
+    <!-- CRT 효과 -->
     <div class="crt-overlay"></div>
-    
-    <!-- ✅ CRT 플리커 효과 -->
     <div class="crt-flicker"></div>
     
     <div id="app">
-        <!-- ✅ 중앙 제목 -->
+        <!-- 중앙 제목 -->
         <div class="title-overlay">
             <h1>🏛️ 국가유산 인터랙티브</h1>
             <p>검지 손가락으로 버튼을 3 초간 터치하세요</p>
         </div>
         
-        <!-- ✅ 흩어진 메뉴 버튼들 -->
+        <!-- 흩어진 메뉴 버튼들 -->
         <div class="feature-buttons">
             <button class="feature-btn" data-feature="1" data-sound="hover">단청 물결</button>
             <button class="feature-btn" data-feature="2" data-sound="hover">국가유산 CRT</button>
@@ -39,7 +38,7 @@
             <button class="feature-btn" data-feature="8" data-sound="hover">인터렉티브</button>
         </div>
         
-        <!-- ✅ 초록색 원형 게이지 (터치 시 표시) -->
+        <!-- 초록색 원형 게이지 -->
         <div id="touch-gauge" style="display:none;">
             <svg viewBox="0 0 100 100" class="gauge-svg">
                 <circle class="gauge-bg" cx="50" cy="50" r="45"/>
@@ -48,12 +47,12 @@
             <div id="touch-text">터치 중...</div>
         </div>
         
-        <!-- ✅ 현재 실행 중인 기능 컨테이너 -->
+        <!-- 기능 컨테이너 -->
         <main id="feature-container">
             <!-- 기능 실행 시 내용 채워짐 -->
         </main>
         
-        <!-- ✅ 로딩 오버레이 (CRT 효과) -->
+        <!-- 로딩 오버레이 -->
         <div id="loading-overlay" style="display:none;">
             <div class="loading-crt">
                 <div class="loading-text">로딩 중...</div>
@@ -63,28 +62,13 @@
             </div>
         </div>
         
-        <!-- ✅ 푸터 -->
+        <!-- 푸터 -->
         <footer class="main-footer">
             <span>© 2026 국가유산 디지털 아카이브</span>
         </footer>
     </div>
     
-    <!-- ✅ 소리 효과 (Base64 또는 URL) -->
-    <div id="sound-effects">
-        <audio id="sound-hover" preload="auto">
-            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
-        </audio>
-        <audio id="sound-touch" preload="auto">
-            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
-        </audio>
-        <audio id="sound-success" preload="auto">
-            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
-        </audio>
-        <audio id="sound-instrument" preload="auto">
-            <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGl2ZSBDaGlja2VuIE11c2ljIChGb3IgVGVzdCk" type="audio/mpeg">
-        </audio>
-    </div>
-    
+    <!-- Feature JS 파일들 -->
     <script src="./js/feature1-dancheong.js"></script>
     <script src="./js/feature2-crt.js"></script>
     <script src="./js/feature3-seokjeok.js"></script>
