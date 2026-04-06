@@ -23,6 +23,7 @@ class CulturalHeritageApp {
         this.isHandDetectionReady = false;
         this.handCanvas = null;
         this.handCtx = null;
+        this.currentLandmarks = null; // ✅ 현재 손 랜드마크 저장
         this.init();
     }
     
@@ -30,7 +31,7 @@ class CulturalHeritageApp {
         console.log('=== init() called ===');
         
         this.setupAudio();
-        this.setupHandCanvas(); // ✅ 손 골격 표시용 캔버스 생성
+        this.setupHandCanvas();
         
         const videoReady = await this.startWebcam();
         console.log('Webcam ready:', videoReady);
@@ -47,7 +48,6 @@ class CulturalHeritageApp {
     }
     
     setupHandCanvas() {
-        // ✅ 손 골격을 표시할 캔버스 생성
         const canvas = document.createElement('canvas');
         canvas.id = 'hand-canvas';
         document.body.appendChild(canvas);
@@ -219,8 +219,13 @@ class CulturalHeritageApp {
         ctx.clearRect(0, 0, this.handCanvas.width, this.handCanvas.height);
         
         let foundButton = null;
+        let currentHand = null;
         
+        // ✅ multiHandLandmarks 의 첫 번째 손을 사용
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            currentHand = results.multiHandLandmarks[0]; // ✅ 현재 손을 저장
+            this.currentLandmarks = currentHand; // ✅ class 변수에도 저장
+            
             for (const landmarks of results.multiHandLandmarks) {
                 const indexFingerTip = landmarks[8];
                 const button = this.findButtonAtPosition(indexFingerTip, buttons);
@@ -231,7 +236,7 @@ class CulturalHeritageApp {
             }
             
             // ✅ 손 골격 그리기
-            this.drawHandSkeleton(landmarks);
+            this.drawHandSkeleton(currentHand);
         }
         
         if (foundButton) {
@@ -262,19 +267,17 @@ class CulturalHeritageApp {
         }
     }
     
-    // ✅ 손 골격 그리기 함수 추가
     drawHandSkeleton(landmarks) {
         const ctx = this.handCtx;
         
         if (!landmarks || landmarks.length === 0) return;
         
-        // 손가락 연결선 그리기
         const connections = [
-            [0, 1], [1, 2], [2, 3], [3, 4],     // 엄지
-            [0, 5], [5, 6], [6, 7], [7, 8],     // 검지
-            [0, 9], [9, 10], [10, 11], [11, 12], // 중지
-            [0, 13], [13, 14], [14, 15], [15, 16], // 약지
-            [0, 17], [17, 18], [18, 19], [19, 20]  // 새끼손가락
+            [0, 1], [1, 2], [2, 3], [3, 4],
+            [0, 5], [5, 6], [6, 7], [7, 8],
+            [0, 9], [9, 10], [10, 11], [11, 12],
+            [0, 13], [13, 14], [14, 15], [15, 16],
+            [0, 17], [17, 18], [18, 19], [19, 20]
         ];
         
         ctx.strokeStyle = '#00ff00';
@@ -295,7 +298,6 @@ class CulturalHeritageApp {
             ctx.stroke();
         }
         
-        // 랜드마크 점 그리기
         ctx.fillStyle = '#00ff00';
         for (const landmark of landmarks) {
             const x = landmark.x * this.handCanvas.width;
@@ -306,7 +308,6 @@ class CulturalHeritageApp {
             ctx.fill();
         }
         
-        // 검지 손가락 끝 강조
         const indexTip = landmarks[8];
         const ix = indexTip.x * this.handCanvas.width;
         const iy = indexTip.y * this.handCanvas.height;
