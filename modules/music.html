@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전통악기 박스</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+  :root {
+    --gold: #c9a84c; --gold2: #e8c96a; --red: #7a1515; --ink: #0f0c07;
+    --paper: #f5efe0; --dark: #1a1209; --accent: #3a6b35;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--ink); color: var(--paper); font-family: 'Noto Sans KR', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+
+  /* HEADER */
+  .top-bar { padding: 12px 24px; background: rgba(0,0,0,0.6); border-bottom: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .top-title { font-family: 'Noto Serif KR', serif; font-size: 16px; color: var(--gold); letter-spacing: 0.15em; }
+  .bpm-ctrl { display: flex; align-items: center; gap: 10px; }
+  .bpm-ctrl label { font-size: 11px; color: rgba(245,239,224,0.5); letter-spacing: 0.1em; }
+  .bpm-ctrl input[type=range] { width: 100px; accent-color: var(--gold); }
+  #bpm-val { font-size: 13px; color: var(--gold); min-width: 48px; text-align: center; font-family: 'Courier New', monospace; }
+  .btn { background: none; border: 1px solid rgba(201,168,76,0.4); color: var(--gold); padding: 6px 16px; font-size: 12px; cursor: pointer; font-family: 'Courier New', monospace; letter-spacing: 0.1em; transition: all 0.2s; }
+  .btn:hover { background: rgba(201,168,76,0.15); }
+  .btn.active { background: rgba(201,168,76,0.2); border-color: var(--gold); }
+
+  /* STAGE (loop visualizer) */
+  #stage { flex: 0 0 180px; background: rgba(10,7,3,0.8); border-bottom: 1px solid rgba(201,168,76,0.15); position: relative; overflow: hidden; }
+  #stage-canvas { width: 100%; height: 100%; }
+  .stage-label { position: absolute; top: 10px; left: 16px; font-size: 10px; color: rgba(201,168,76,0.4); letter-spacing: 0.2em; font-family: 'Courier New', monospace; }
+  .beat-indicator { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(201,168,76,0.5); pointer-events: none; transition: left 0.05s linear; box-shadow: 0 0 8px rgba(201,168,76,0.8); }
+
+  /* INSTRUMENT SHELF */
+  #instrument-shelf { flex: 0 0 200px; padding: 16px 20px 10px; overflow-x: auto; border-bottom: 1px solid rgba(201,168,76,0.1); background: rgba(5,3,1,0.5); }
+  .shelf-title { font-size: 10px; color: rgba(245,239,224,0.3); letter-spacing: 0.2em; margin-bottom: 12px; font-family: 'Courier New', monospace; }
+  .instruments-row { display: flex; gap: 14px; padding-bottom: 8px; min-width: max-content; }
+  .instrument-card {
+    width: 110px; flex-shrink: 0;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: rgba(20,14,6,0.8);
+    padding: 10px 8px;
+    text-align: center;
+    cursor: grab;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .instrument-card:hover { border-color: var(--gold); transform: translateY(-3px); background: rgba(30,20,8,0.9); }
+  .instrument-card:active { cursor: grabbing; transform: scale(0.95); }
+  .instrument-card.dragging { opacity: 0.4; }
+  .inst-emoji { font-size: 28px; display: block; margin-bottom: 6px; line-height: 1; }
+  .inst-name { font-family: 'Noto Serif KR', serif; font-size: 13px; color: var(--gold); font-weight: 700; display: block; margin-bottom: 2px; }
+  .inst-name-en { font-size: 9px; color: rgba(245,239,224,0.3); letter-spacing: 0.1em; display: block; margin-bottom: 6px; font-family: 'Courier New', monospace; }
+  .inst-type-badge { font-size: 9px; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em; }
+  .t-rhythm { background: rgba(122,21,21,0.4); color: #e87070; border: 1px solid rgba(122,21,21,0.5); }
+  .t-melody { background: rgba(58,107,53,0.4); color: #88c080; border: 1px solid rgba(58,107,53,0.5); }
+  .t-bass   { background: rgba(30,50,100,0.4); color: #7090d0; border: 1px solid rgba(30,50,100,0.5); }
+  .t-accent { background: rgba(100,70,20,0.4); color: #d4a040; border: 1px solid rgba(100,70,20,0.5); }
+
+  /* LOOP TRACKS */
+  #tracks-area { flex: 1; overflow-y: auto; padding: 12px 20px 12px; min-height: 0; }
+  .tracks-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .tracks-title { font-size: 10px; color: rgba(245,239,224,0.3); letter-spacing: 0.2em; font-family: 'Courier New', monospace; }
+  .btn-clear { font-size: 10px; padding: 3px 10px; }
+
+  .track-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px; min-height: 52px;
+    background: rgba(15,10,4,0.6); border: 1px solid rgba(201,168,76,0.12);
+    padding: 6px 10px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .track-row.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .track-row.empty { border-style: dashed; opacity: 0.5; }
+  .track-label { width: 90px; flex-shrink: 0; }
+  .track-label .inst-emoji-sm { font-size: 18px; }
+  .track-label .inst-nm { font-size: 11px; color: var(--gold); font-family: 'Noto Serif KR', serif; }
+  .track-empty-hint { font-size: 10px; color: rgba(245,239,224,0.2); font-family: 'Courier New', monospace; letter-spacing: 0.1em; }
+  .track-steps { display: flex; gap: 4px; flex: 1; }
+  .step-btn {
+    flex: 1; height: 38px; min-width: 20px;
+    background: rgba(30,20,8,0.8);
+    border: 1px solid rgba(201,168,76,0.15);
+    cursor: pointer;
+    border-radius: 2px;
+    position: relative; overflow: hidden;
+    transition: all 0.1s;
+  }
+  .step-btn.active { background: var(--gold); border-color: var(--gold2); box-shadow: 0 0 8px rgba(201,168,76,0.5); }
+  .step-btn.playing { box-shadow: 0 0 16px rgba(201,168,76,1); transform: scaleY(1.1); }
+  .step-btn.beat1 { border-left: 2px solid rgba(201,168,76,0.4); }
+  .step-btn:hover:not(.active) { background: rgba(201,168,76,0.15); }
+  .track-vol { width: 60px; }
+  .track-vol input { width: 100%; accent-color: var(--gold); }
+  .track-remove { background: none; border: none; color: rgba(245,239,224,0.2); font-size: 16px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+  .track-remove:hover { color: #e87070; }
+
+  /* DROP ZONE */
+  #drop-zone {
+    border: 1px dashed rgba(201,168,76,0.2);
+    background: rgba(10,7,3,0.4);
+    text-align: center;
+    padding: 14px;
+    font-size: 11px; color: rgba(245,239,224,0.25);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.15em;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+  #drop-zone.drag-over { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.06); }
+
+  /* VIZ canvas */
+  #viz-canvas { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-title">전통악기 박스 · 傳統樂器</div>
+  <div class="bpm-ctrl">
+    <label>BPM</label>
+    <input type="range" id="bpm-slider" min="60" max="180" value="90" oninput="setBPM(+this.value)">
+    <span id="bpm-val">90</span>
+    <button class="btn" id="play-btn" onclick="togglePlay()">▶ 재생</button>
+    <button class="btn" onclick="clearAll()">초기화</button>
+    <button class="btn" onclick="randomize()">🎲 랜덤</button>
+    <button class="btn" onclick="record()">⏺ REC</button>
+  </div>
+</div>
+
+<div id="stage">
+  <div class="stage-label">// LOOP VISUALIZER //</div>
+  <canvas id="stage-canvas"></canvas>
+  <div class="beat-indicator" id="beat-ind"></div>
+</div>
+
+<div id="instrument-shelf">
+  <div class="shelf-title">// 악기를 트랙으로 드래그 하세요 · DRAG INSTRUMENTS TO TRACKS //</div>
+  <div class="instruments-row" id="instruments-row"></div>
+</div>
+
+<div id="tracks-area">
+  <div class="tracks-header">
+    <div class="tracks-title">// STEP SEQUENCER — 16 STEPS //</div>
+    <button class="btn btn-clear" onclick="clearAll()">ALL CLEAR</button>
+  </div>
+  <div id="tracks-container"></div>
+  <div id="drop-zone">드래그하여 악기 추가 · DROP INSTRUMENT HERE TO ADD TRACK</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<script>
+// ════════════════════════════════════════════
+// INSTRUMENT DEFINITIONS
+// ════════════════════════════════════════════
+const INSTRUMENTS = [
+  { id:'janggu',    emoji:'🥁', name:'장구',   nameEn:'JANGGU',    type:'rhythm', color:'#e87070', notes:['C2','C2','C2'], baseUrl:'https://tonejs.github.io/audio/berklee/gong_1.mp3' },
+  { id:'buk',       emoji:'🪘', name:'북',     nameEn:'BUK',       type:'rhythm', color:'#e87070', notes:['C2'], baseUrl:'https://tonejs.github.io/audio/berklee/gong_1.mp3' },
+  { id:'kkwaenggwari', emoji:'🔔', name:'꽹과리', nameEn:'KKWAENGGWARI', type:'accent', color:'#d4a040', notes:['A4'], baseUrl:'https://tonejs.github.io/audio/berklee/woodblock.mp3' },
+  { id:'gayageum',  emoji:'🎵', name:'가야금', nameEn:'GAYAGEUM',  type:'melody', color:'#88c080', notes:['C4','E4','G4','A4','C5'], baseUrl:'https://tonejs.github.io/audio/berklee/guitar_1.mp3' },
+  { id:'daegeum',   emoji:'🎶', name:'대금',   nameEn:'DAEGEUM',   type:'melody', color:'#88c080', notes:['C5','D5','E5','G5','A5'], baseUrl:'https://tonejs.github.io/audio/berklee/flute.mp3' },
+  { id:'haegeum',   emoji:'🎻', name:'해금',   nameEn:'HAEGEUM',   type:'melody', color:'#88c080', notes:['C4','D4','E4','F4','G4'], baseUrl:'https://tonejs.github.io/audio/berklee/cello_1.mp3' },
+  { id:'piri',      emoji:'🎷', name:'피리',   nameEn:'PIRI',      type:'melody', color:'#88c080', notes:['G4','A4','B4','D5','E5'], baseUrl:'https://tonejs.github.io/audio/berklee/clarinet_1.mp3' },
+  { id:'ajaeng',    emoji:'〰', name:'아쟁',   nameEn:'AJAENG',    type:'bass',   color:'#7090d0', notes:['C2','D2','E2','G2'], baseUrl:'https://tonejs.github.io/audio/berklee/bass_1.mp3' },
+];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const STEPS = 16;
+let bpm = 90;
+let isPlaying = false;
+let currentStep = 0;
+let tracks = [];
+let synths = {};
+let seq = null;
+let dragItem = null;
+let audioCtx = null;
+let analyser = null;
+let vizFrame = null;
+
+// ════════════════════════════════════════════
+// SYNTH FACTORY using Web Audio (fallback)
+// ════════════════════════════════════════════
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+// Instrument color map
+const TYPE_COLORS = { rhythm:'#e87070', melody:'#88c080', bass:'#7090d0', accent:'#d4a040' };
+
+// ════════════════════════════════════════════
+// TONE.JS SETUP
+// ════════════════════════════════════════════
+async function buildSynth(inst) {
+  await Tone.start();
+  let s;
+  switch(inst.type) {
+    case 'rhythm':
+      s = new Tone.MembraneSynth({ pitchDecay:0.05, octaves:6, envelope:{attack:0.001,decay:0.3,sustain:0,release:0.1} }).toDestination();
+      break;
+    case 'accent':
+      s = new Tone.MetalSynth({ frequency:400, envelope:{attack:0.001,decay:0.1,release:0.1}, harmonicity:5.1, modulationIndex:32, resonance:4000, octaves:1.5 }).toDestination();
+      break;
+    case 'bass':
+      s = new Tone.Synth({ oscillator:{type:'sawtooth'}, envelope:{attack:0.05,decay:0.3,sustain:0.2,release:0.5} }).toDestination();
+      break;
+    default:
+      s = new Tone.PolySynth(Tone.Synth, { oscillator:{type:'triangle'}, envelope:{attack:0.02,decay:0.3,sustain:0.3,release:0.5} }).toDestination();
+  }
+  s.volume.value = -6;
+  return s;
+}
+
+// ════════════════════════════════════════════
+// RENDER INSTRUMENT SHELF
+// ════════════════════════════════════════════
+function renderShelf() {
+  const row = document.getElementById('instruments-row');
+  row.innerHTML = '';
+  INSTRUMENTS.forEach(inst => {
+    const card = document.createElement('div');
+    card.className = 'instrument-card';
+    card.draggable = true;
+    card.innerHTML = `
+      <span class="inst-emoji">${inst.emoji}</span>
+      <span class="inst-name">${inst.name}</span>
+      <span class="inst-name-en">${inst.nameEn}</span>
+      <span class="inst-type-badge t-${inst.type}">${inst.type.toUpperCase()}</span>
+    `;
+    card.addEventListener('dragstart', e => {
+      dragItem = inst;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', () => addTrack(inst));
+    row.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════
+// TRACKS
+// ════════════════════════════════════════════
+async function addTrack(inst) {
+  if (tracks.find(t => t.id === inst.id)) return;
+  const synth = await buildSynth(inst);
+  const noteIdx = 0;
+  const track = {
+    id: inst.id,
+    inst,
+    steps: Array(STEPS).fill(false),
+    notes: inst.notes,
+    noteIdx: 0,
+    synth,
+    volume: 0.8,
+  };
+  synths[inst.id] = synth;
+  tracks.push(track);
+  renderTracks();
+}
+
+function removeTrack(id) {
+  const t = tracks.find(t => t.id === id);
+  if (t && t.synth) t.synth.dispose();
+  delete synths[id];
+  tracks = tracks.filter(t => t.id !== id);
+  renderTracks();
+}
+
+function renderTracks() {
+  const container = document.getElementById('tracks-container');
+  container.innerHTML = '';
+  if (tracks.length === 0) return;
+
+  tracks.forEach(track => {
+    const row = document.createElement('div');
+    row.className = 'track-row';
+    row.dataset.id = track.id;
+
+    // Label
+    const label = document.createElement('div');
+    label.className = 'track-label';
+    label.innerHTML = `<span class="inst-emoji-sm">${track.inst.emoji}</span><br><span class="inst-nm">${track.inst.name}</span>`;
+
+    // Steps
+    const stepsDiv = document.createElement('div');
+    stepsDiv.className = 'track-steps';
+    for (let i = 0; i < STEPS; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'step-btn' + (track.steps[i] ? ' active' : '') + (i % 4 === 0 ? ' beat1' : '');
+      btn.dataset.step = i;
+      btn.addEventListener('click', () => {
+        track.steps[i] = !track.steps[i];
+        btn.classList.toggle('active', track.steps[i]);
+      });
+      stepsDiv.appendChild(btn);
+    }
+
+    // Volume
+    const volDiv = document.createElement('div');
+    volDiv.className = 'track-vol';
+    volDiv.innerHTML = `<input type="range" min="0" max="1" step="0.05" value="${track.volume}" style="width:55px;accent-color:${track.inst.color}">`;
+    volDiv.querySelector('input').addEventListener('input', e => {
+      track.volume = +e.target.value;
+      if (track.synth) track.synth.volume.value = Tone.gainToDb(track.volume);
+    });
+
+    // Remove
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'track-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.onclick = () => removeTrack(track.id);
+
+    row.append(label, stepsDiv, volDiv, removeBtn);
+    container.appendChild(row);
+  });
+}
+
+// ════════════════════════════════════════════
+// SEQUENCER
+// ════════════════════════════════════════════
+function startSequencer() {
+  Tone.getTransport().bpm.value = bpm;
+  if (seq) seq.dispose();
+
+  seq = new Tone.Sequence((time, step) => {
+    currentStep = step;
+
+    tracks.forEach(track => {
+      if (track.steps[step]) {
+        const note = track.notes[step % track.notes.length];
+        try {
+          if (track.inst.type === 'rhythm') {
+            track.synth.triggerAttackRelease(note || 'C2', '16n', time);
+          } else if (track.inst.type === 'accent') {
+            track.synth.triggerAttackRelease('32n', time);
+          } else {
+            track.synth.triggerAttackRelease(note || 'C4', '8n', time);
+          }
+        } catch(e) {}
+      }
+    });
+
+    // Update UI on next frame
+    Tone.getDraw().schedule(() => {
+      updateStepUI(step);
+    }, time);
+
+  }, [...Array(STEPS).keys()], '16n');
+
+  seq.start(0);
+  Tone.getTransport().start();
+}
+
+function stopSequencer() {
+  if (seq) { seq.stop(); }
+  Tone.getTransport().stop();
+  currentStep = 0;
+  updateStepUI(-1);
+  document.getElementById('beat-ind').style.left = '0px';
+}
+
+function updateStepUI(step) {
+  // Update step button highlights
+  document.querySelectorAll('.step-btn').forEach(btn => btn.classList.remove('playing'));
+  if (step >= 0) {
+    document.querySelectorAll(`.track-row .step-btn:nth-child(${step + 1})`).forEach(btn => {
+      if (btn.classList.contains('active')) btn.classList.add('playing');
+    });
+    // Beat indicator
+    const stagesCanvas = document.getElementById('stage-canvas');
+    const pct = step / STEPS;
+    document.getElementById('beat-ind').style.left = (pct * 100) + '%';
+  }
+  drawStage(step);
+}
+
+async function togglePlay() {
+  await Tone.start();
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('play-btn');
+  if (isPlaying) {
+    startSequencer();
+    btn.textContent = '⏹ 정지';
+    btn.classList.add('active');
+    startViz();
+  } else {
+    stopSequencer();
+    btn.textContent = '▶ 재생';
+    btn.classList.remove('active');
+    stopViz();
+  }
+}
+
+function setBPM(v) {
+  bpm = v;
+  document.getElementById('bpm-val').textContent = v;
+  Tone.getTransport().bpm.value = v;
+}
+
+// ════════════════════════════════════════════
+// STAGE VISUALIZER
+// ════════════════════════════════════════════
+const stageCanvas = document.getElementById('stage-canvas');
+const sCtx = stageCanvas.getContext('2d');
+
+function drawStage(activeStep) {
+  const W = stageCanvas.width, H = stageCanvas.height;
+  sCtx.clearRect(0,0,W,H);
+
+  // Background
+  sCtx.fillStyle = 'rgba(10,7,3,0.3)';
+  sCtx.fillRect(0,0,W,H);
+
+  if (tracks.length === 0) {
+    sCtx.fillStyle = 'rgba(201,168,76,0.1)';
+    sCtx.font = '12px Courier New';
+    sCtx.textAlign = 'center';
+    sCtx.fillText('악기를 추가하면 루프가 시각화됩니다', W/2, H/2);
+    return;
+  }
+
+  const cellW = W / STEPS;
+  const trackH = H / Math.max(tracks.length, 1);
+
+  tracks.forEach((track, ti) => {
+    const y = ti * trackH;
+    const color = track.inst.color || '#c9a84c';
+
+    for (let s = 0; s < STEPS; s++) {
+      const x = s * cellW;
+      if (track.steps[s]) {
+        const alpha = s === activeStep ? 1 : 0.55;
+        sCtx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2,'0');
+        const barH = s === activeStep ? trackH * 0.9 : trackH * 0.6;
+        sCtx.fillRect(x + 1, y + (trackH - barH)/2, cellW - 2, barH);
+
+        if (s === activeStep) {
+          sCtx.shadowColor = color;
+          sCtx.shadowBlur = 12;
+          sCtx.fillRect(x + 1, y + (trackH - barH)/2, cellW - 2, barH);
+          sCtx.shadowBlur = 0;
+        }
+      }
+      // Beat markers
+      if (s % 4 === 0) {
+        sCtx.fillStyle = 'rgba(201,168,76,0.08)';
+        sCtx.fillRect(x, y, 1, trackH);
+      }
+    }
+
+    // Track name
+    sCtx.fillStyle = 'rgba(245,239,224,0.25)';
+    sCtx.font = '10px Noto Serif KR';
+    sCtx.textAlign = 'left';
+    sCtx.fillText(track.inst.name, 4, y + trackH * 0.65);
+  });
+
+  // Playhead
+  if (activeStep >= 0) {
+    const x = activeStep * cellW;
+    sCtx.fillStyle = 'rgba(201,168,76,0.6)';
+    sCtx.fillRect(x, 0, 2, H);
+  }
+}
+
+function resizeStage() {
+  stageCanvas.width = stageCanvas.offsetWidth;
+  stageCanvas.height = stageCanvas.offsetHeight;
+  drawStage(-1);
+}
+window.addEventListener('resize', resizeStage);
+setTimeout(resizeStage, 100);
+
+// ════════════════════════════════════════════
+// AUDIO VISUALIZER (bottom wave)
+// ════════════════════════════════════════════
+function startViz() {
+  if (vizFrame) return;
+  const canvas = document.getElementById('stage-canvas');
+  function loop() {
+    vizFrame = requestAnimationFrame(loop);
+  }
+  loop();
+}
+function stopViz() {
+  if (vizFrame) { cancelAnimationFrame(vizFrame); vizFrame = null; }
+}
+
+// ════════════════════════════════════════════
+// DRAG AND DROP
+// ════════════════════════════════════════════
+const dropZone = document.getElementById('drop-zone');
+const tracksArea = document.getElementById('tracks-area');
+
+[dropZone, tracksArea].forEach(zone => {
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', async e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (dragItem) {
+      await addTrack(dragItem);
+      dragItem = null;
+    }
+  });
+});
+
+// ════════════════════════════════════════════
+// PRESET & UTILS
+// ════════════════════════════════════════════
+function clearAll() {
+  stopSequencer();
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶ 재생';
+  document.getElementById('play-btn').classList.remove('active');
+  Object.values(synths).forEach(s => { try { s.dispose(); } catch(e){} });
+  synths = {};
+  tracks = [];
+  renderTracks();
+  drawStage(-1);
+}
+
+async function randomize() {
+  clearAll();
+  // Pick 3-5 random instruments
+  const shuffled = [...INSTRUMENTS].sort(() => Math.random()-0.5).slice(0, 4);
+  for (const inst of shuffled) {
+    await addTrack(inst);
+    const track = tracks[tracks.length-1];
+    // Random steps (about 1/3 density)
+    for (let i = 0; i < STEPS; i++) {
+      track.steps[i] = Math.random() < 0.3;
+    }
+    // Ensure beat 1 has something
+    track.steps[0] = true;
+  }
+  renderTracks();
+  await togglePlay();
+}
+
+let mediaRecorder = null;
+let recordedChunks = [];
+function record() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    return;
+  }
+  // Simple approach: record screen audio via Web Audio + MediaRecorder
+  const btn = document.querySelector('[onclick="record()"]');
+  btn.textContent = '⏹ STOP REC';
+  setTimeout(() => { btn.textContent = '⏺ REC'; }, 5000);
+}
+
+// ════════════════════════════════════════════
+// PRESET PATTERNS
+// ════════════════════════════════════════════
+const PRESETS = {
+  '굿거리': { instruments:['janggu','kkwaenggwari','gayageum'], patterns: {
+    janggu:   [1,0,0,1, 0,1,0,0, 1,0,0,1, 0,1,0,0],
+    kkwaenggwari: [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+    gayageum: [0,0,1,0, 0,0,1,0, 0,1,0,0, 0,0,1,1],
+  }},
+};
+
+async function loadPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  clearAll();
+  for (const instId of p.instruments) {
+    const inst = INSTRUMENTS.find(i => i.id === instId);
+    if (inst) {
+      await addTrack(inst);
+      const track = tracks[tracks.length-1];
+      track.steps = p.patterns[instId].map(v => v === 1);
+    }
+  }
+  renderTracks();
+}
+
+// Preset buttons
+const shelfTitle = document.querySelector('.shelf-title');
+const presetRow = document.createElement('div');
+presetRow.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+Object.keys(PRESETS).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.style.fontSize = '11px';
+  btn.textContent = '🎵 ' + name;
+  btn.onclick = () => loadPreset(name);
+  presetRow.appendChild(btn);
+});
+shelfTitle.insertAdjacentElement('afterend', presetRow);
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+renderShelf();
+drawStage(-1);
+</script>
+</body>
+</html>
