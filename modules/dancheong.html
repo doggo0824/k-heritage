@@ -267,4 +267,52 @@ canvas.addEventListener('mousedown',e=>{
 });
 canvas.addEventListener('mouseup',()=>{
   isDown=false;
-  if(grabIdx>=0){floaters[grabIdx].grabbed=false;floaters[grabIdx].vx=(floaters[grabIdx].x-floaters[grabIdx].bx*W)*-.08;floaters[grabIdx].vy=(floaters
+  if(grabIdx>=0){floaters[grabIdx].grabbed=false;floaters[grabIdx].vx=(floaters[grabIdx].x-floaters[grabIdx].bx*W)*-.08;floaters[grabIdx].vy=(floaters[grabIdx].y-floaters[grabIdx].by*H)*-.08;grabIdx=-1;}
+});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();Array.from(e.touches).forEach(t=>ripple(t.clientX/W,t.clientY/H,.5));},{passive:false});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();Array.from(e.touches).forEach(t=>ripple(t.clientX/W,t.clientY/H,.9));},{passive:false});
+
+/* ── WEBCAM / MEDIAPIPE ── */
+async function initWebcam(){
+  document.getElementById('wb').textContent='⏳ 연결 중...';
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
+    const vid=document.getElementById('vid');vid.srcObject=stream;await vid.play();
+    if(typeof Hands==='undefined'){document.getElementById('wb').textContent='✓ ON (마우스모드)';return;}
+    const hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+    hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:.65,minTrackingConfidence:.5});
+    hands.onResults(r=>{
+      const fcur=document.getElementById('fcur');
+      if(!r.multiHandLandmarks?.length){fcur.style.display='none';floaters.forEach(f=>f.grabbed=false);return;}
+      r.multiHandLandmarks.forEach(lm=>{
+        const fx=(1-lm[8].x)*W,fy=lm[8].y*H;
+        ripple(fx/W,fy/H,.65);
+        const tx=(1-lm[4].x)*W,ty=lm[4].y*H;
+        const pinch=Math.hypot(fx-tx,fy-ty)<45;
+        floaters.forEach(f=>{
+          if(pinch&&Math.hypot(f.x-fx,f.y-fy)<f.r*1.4){f.grabbed=true;f.x=fx;f.y=fy;}
+          else if(!pinch)f.grabbed=false;
+        });
+        fcur.style.display='block';fcur.style.left=fx+'px';fcur.style.top=fy+'px';
+        [0,5,9,13,17].forEach(i=>ripple((1-lm[i].x),lm[i].y,.08));
+      });
+      document.getElementById('st').textContent='HANDS:'+r.multiHandLandmarks.length+' · TRACKING';
+    });
+    const cam=new Camera(vid,{onFrame:async()=>{await hands.send({image:vid});},width:640,height:480});
+    cam.start();
+    document.getElementById('wb').textContent='✓ 웹캠 ON';
+    document.getElementById('st').textContent='MEDIAPIPE ACTIVE';
+  }catch(e){document.getElementById('wb').textContent='✗ 실패';document.getElementById('st').textContent='ERR: '+e.message;}
+}
+
+/* ── LOOP ── */
+let last=0;
+function loop(t){
+  requestAnimationFrame(loop);
+  if(t-last<14)return;last=t;
+  stepSim();updateFloaters();render();
+}
+loop(0);
+setInterval(()=>{for(let i=0;i<2;i++)ripple(Math.random(),Math.random(),.2+Math.random()*.3);},700);
+</script>
+</body></html>
