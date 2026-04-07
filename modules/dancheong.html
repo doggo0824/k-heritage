@@ -144,12 +144,12 @@ class Tile{
 
 // Demo pattern image generator
 const DEMO=[
-  {name:'연화문',fn:(x,s)=>{x.fillStyle='#c9312a';x.fillRect(0,0,s,s);for(let i=0;i<8;i++){const a=i/8*Math.PI*2;x.fillStyle='rgba(255,215,0,.7)';x.beginPath();x.ellipse(s/2+Math.cos(a)*s*.28,s/2+Math.sin(a)*s*.28,s*.14,s*.07,a,0,Math.PI*2);x.fill();}x.fillStyle='#ffd700';x.beginPath();x.arc(s/2,s/2,s*.12,0,Math.PI*2);x.fill();}},
-  {name:'태극문',fn:(x,s)=>{x.fillStyle='#2145a8';x.fillRect(0,0,s,s);x.fillStyle='#fff';x.beginPath();x.arc(s/2,s/2,s*.38,0,Math.PI*2);x.fill();const g=x.createLinearGradient(s*.15,s/2,s*.85,s/2);g.addColorStop(0,'#c9312a');g.addColorStop(1,'#2145a8');x.fillStyle=g;x.beginPath();x.arc(s/2,s/2,s*.38,0,Math.PI*2);x.fill();x.fillStyle='#c9312a';x.beginPath();x.arc(s/2,s/2-s*.19,s*.19,Math.PI,0);x.fill();x.fillStyle='#2145a8';x.beginPath();x.arc(s/2,s/2+s*.19,s*.19,0,Math.PI);x.fill();}},
-  {name:'팔괘문',fn:(x,s)=>{x.fillStyle='#1a6b3c';x.fillRect(0,0,s,s);x.strokeStyle='#ffd700';x.lineWidth=s*.03;for(let i=0;i<8;i++){const a=i/8*Math.PI*2-Math.PI/2;for(let r=0;r<3;r++){x.beginPath();x.arc(s/2+Math.cos(a)*s*.3,s/2+Math.sin(a)*s*.3,s*.08,0,Math.PI*2);x.stroke();}}x.fillStyle='#ffd700';x.beginPath();x.arc(s/2,s/2,s*.1,0,Math.PI*2);x.fill();}},
-  {name:'운문',fn:(x,s)=>{x.fillStyle='#8b2d8b';x.fillRect(0,0,s,s);const drawC=(cx,cy,r)=>{x.fillStyle='rgba(255,200,255,.6)';x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.fill();x.beginPath();x.arc(cx-r*.5,cy-r*.3,r*.65,0,Math.PI*2);x.fill();x.beginPath();x.arc(cx+r*.5,cy-r*.3,r*.65,0,Math.PI*2);x.fill();};[[s/2,s*.3,s*.12],[s*.25,s*.65,s*.1],[s*.75,s*.65,s*.1],[s/2,s*.75,s*.1]].forEach(([cx,cy,r])=>drawC(cx,cy,r));}},
-  {name:'귀갑문',fn:(x,s)=>{x.fillStyle='#c9a84c';x.fillRect(0,0,s,s);x.strokeStyle='rgba(0,0,0,.5)';x.lineWidth=3;for(let r=0;r<5;r++)for(let c=0;c<5;c++){const cx=c*s*.22+s*.11+(r%2?s*.11:0),cy=r*s*.19+s*.1;x.beginPath();for(let i=0;i<6;i++){const a=i/6*Math.PI*2;x.lineTo(cx+Math.cos(a)*s*.1,cy+Math.sin(a)*s*.1);}x.closePath();x.stroke();}}},
-  {name:'격자문',fn:(x,s)=>{x.fillStyle='#e8732a';x.fillRect(0,0,s,s);x.strokeStyle='rgba(255,255,200,.5)';x.lineWidth=s*.025;const step=s/6;for(let i=0;i<=6;i++){x.beginPath();x.moveTo(i*step,0);x.lineTo(i*step,s);x.stroke();x.beginPath();x.moveTo(0,i*step);x.lineTo(s,i*step);x.stroke();}x.fillStyle='rgba(255,255,200,.4)';for(let r=0;r<6;r+=2)for(let c=0;c<6;c+=2){x.beginPath();x.arc(c*step+step/2,r*step+step/2,step*.25,0,Math.PI*2);x.fill();}}},
+  { name: '연화문', path: './svg/yeonhwamun.svg' },
+  { name: '태극문', path: './svg/taegeukmun.svg' },
+  { name: '팔괘문', path: './svg/palgwaemun.svg' },
+  { name: '운문', path: './svg/unmun.svg' },
+  { name: '귀갑문', path: './svg/gwigapmun.svg' },
+  { name: '격자문', path: './svg/gyeokjamun.svg' }
 ];
 
 function makeDemoImg(d){
