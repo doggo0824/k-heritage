@@ -321,7 +321,7 @@
   }
   .menu-item::before {
     content: '';
-    position: absolute; inset: 0;
+    position: absolute inset: 0;
     background: linear-gradient(135deg, rgba(201,168,76,0) 0%, rgba(201,168,76,0.08) 100%);
     opacity: 0;
     transition: opacity 0.3s;
@@ -425,37 +425,21 @@
     border: none;
     background: #000;
   }
-  .coming-soon {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    height: 100%;
-    color: rgba(245,239,224,0.3);
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    letter-spacing: 0.3em;
-    gap: 12px;
-  }
-  .coming-soon span { font-size: 40px; opacity: 0.3; }
 </style>
 </head>
 <body>
 
-<!-- Webcam background -->
 <video id="webcam-bg" autoplay muted playsinline></video>
 
-<!-- CRT scanlines + effects -->
 <div id="crt-overlay"></div>
 <div id="vignette"></div>
 <div id="noise"></div>
 
-<!-- MediaPipe canvas -->
 <canvas id="mp-canvas"></canvas>
 
-<!-- Custom cursor -->
 <div id="cursor"></div>
 <div id="cursor-dot"></div>
 
-<!-- Finger gauge -->
 <div id="gauge-wrap">
   <svg id="gauge-svg" width="70" height="70" viewBox="0 0 70 70">
     <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(0,255,65,0.15)" stroke-width="4"/>
@@ -470,13 +454,11 @@
   <div id="gauge-label">LOADING...</div>
 </div>
 
-<!-- Corner decorations -->
 <div class="corner-deco" id="c-tl"><svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><path d="M2 50 L2 18 L18 2" stroke="#c9a84c" stroke-width="0.5" stroke-dasharray="4 4"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
 <div class="corner-deco" id="c-tr"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
 <div class="corner-deco" id="c-bl"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
 <div class="corner-deco" id="c-br"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
 
-<!-- Header -->
 <header id="header">
   <div class="header-logo">國家遺産 · 국가유산</div>
   <div class="header-lang">
@@ -487,17 +469,14 @@
   </div>
 </header>
 
-<!-- Main title -->
 <div id="main-title">
   <div class="title-ko" data-i18n="main_title">국가유산<br>디지털 체험관</div>
   <div class="title-divider"></div>
   <div class="title-sub" data-i18n="main_sub">NATIONAL HERITAGE · DIGITAL EXPERIENCE</div>
 </div>
 
-<!-- Guide message -->
 <div id="guide-msg" data-i18n="guide">☝ 검지를 들어 메뉴를 선택하세요</div>
 
-<!-- Bottom menu -->
 <nav id="menu">
   <div class="menu-hint" data-i18n="menu_hint">// SELECT MODULE //</div>
   <div class="menu-grid">
@@ -555,7 +534,16 @@
   </div>
 </nav>
 
-<!-- Module pages -->
+<div class="module-page" id="page-dancheong">
+  <div class="module-header">
+    <button class="back-btn" onclick="closeModule('dancheong')">← BACK</button>
+    <div class="module-title" data-i18n="m1">단청 물결</div>
+  </div>
+  <div class="module-body">
+    <iframe src="modules/dancheong.html" id="iframe-dancheong" loading="lazy"></iframe>
+  </div>
+</div>
+
 <div class="module-page" id="page-crt">
   <div class="module-header">
     <button class="back-btn" onclick="closeModule('crt')">← BACK</button>
@@ -563,6 +551,16 @@
   </div>
   <div class="module-body">
     <iframe src="modules/crt.html" id="iframe-crt" loading="lazy"></iframe>
+  </div>
+</div>
+
+<div class="module-page" id="page-mudra">
+  <div class="module-header">
+    <button class="back-btn" onclick="closeModule('mudra')">← BACK</button>
+    <div class="module-title" data-i18n="m3">색즉시OO즉시색</div>
+  </div>
+  <div class="module-body">
+    <iframe src="modules/mudra.html" id="iframe-mudra" loading="lazy"></iframe>
   </div>
 </div>
 
@@ -576,6 +574,26 @@
   </div>
 </div>
 
+<div class="module-page" id="page-photo">
+  <div class="module-header">
+    <button class="back-btn" onclick="closeModule('photo')">← BACK</button>
+    <div class="module-title" data-i18n="m5">전통문양 인생네컷</div>
+  </div>
+  <div class="module-body">
+    <iframe src="modules/photo.html" id="iframe-photo" loading="lazy"></iframe>
+  </div>
+</div>
+
+<div class="module-page" id="page-sillok">
+  <div class="module-header">
+    <button class="back-btn" onclick="closeModule('sillok')">← BACK</button>
+    <div class="module-title" data-i18n="m6">사관 LLM</div>
+  </div>
+  <div class="module-body">
+    <iframe src="modules/sillok.html" id="iframe-sillok" loading="lazy"></iframe>
+  </div>
+</div>
+
 <div class="module-page" id="page-conservation">
   <div class="module-header">
     <button class="back-btn" onclick="closeModule('conservation')">← BACK</button>
@@ -586,29 +604,16 @@
   </div>
 </div>
 
-<!-- Other modules: coming soon -->
-<div class="module-page" id="page-dancheong">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('dancheong')">← BACK</button><div class="module-title">단청 물결</div></div>
-  <div class="module-body"><div class="coming-soon"><span>🌊</span>이미지 파일을 제공해 주시면 구현됩니다<br><small style="margin-top:8px;font-size:11px">단청 문양 PNG/SVG 파일 필요</small></div></div>
-</div>
-<div class="module-page" id="page-mudra">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('mudra')">← BACK</button><div class="module-title">색즉시OO즉시색</div></div>
-  <div class="module-body"><iframe src="modules/mudra.html" loading="lazy"></iframe></div>
-</div>
-<div class="module-page" id="page-photo">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('photo')">← BACK</button><div class="module-title">전통문양 인생네컷</div></div>
-  <div class="module-body"><iframe src="modules/photo.html" loading="lazy"></iframe></div>
-</div>
-<div class="module-page" id="page-sillok">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('sillok')">← BACK</button><div class="module-title">사관 LLM</div></div>
-  <div class="module-body"><iframe src="modules/sillok.html" loading="lazy"></iframe></div>
-</div>
 <div class="module-page" id="page-generate">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('generate')">← BACK</button><div class="module-title">인터랙티브 국가유산</div></div>
-  <div class="module-body"><div class="coming-soon"><span>🖨️</span>Vercel 함수 및 이미지 생성 API 설정 필요</div></div>
+  <div class="module-header">
+    <button class="back-btn" onclick="closeModule('generate')">← BACK</button>
+    <div class="module-title" data-i18n="m8">인터랙티브 국가유산</div>
+  </div>
+  <div class="module-body">
+    <iframe src="modules/generate.html" id="iframe-generate" loading="lazy"></iframe>
+  </div>
 </div>
 
-<!-- LOADING SCREEN -->
 <div id="loading-screen">
   <div class="crt-frame">
     <div class="crt-title">// 국가유산 디지털 체험관 //</div>
@@ -620,7 +625,6 @@
   </div>
 </div>
 
-<!-- MediaPipe + Audio -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
