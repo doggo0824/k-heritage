@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>인터랙티브 국가유산</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@300;400&display=swap');
+:root{--gold:#c9a84c;--ink:#0f0c07;--paper:#f5efe0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);font-family:'Noto Sans KR',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{padding:11px 22px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ht{font-family:'Noto Serif KR',serif;font-size:15px;color:var(--gold);letter-spacing:.18em}
+.hs{font-size:10px;color:rgba(245,239,224,.28);letter-spacing:.22em;font-family:'Courier New',monospace}
+#main{display:flex;flex:1;overflow:hidden;min-height:0}
+/* Left: gallery */
+#gallery{flex:1;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;overflow-y:auto;align-content:start}
+#gallery::-webkit-scrollbar{width:4px}
+#gallery::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25)}
+.img-card{border:1px solid rgba(201,168,76,.15);background:rgba(10,7,2,.7);position:relative;cursor:pointer;transition:all .25s;overflow:hidden}
+.img-card:hover{border-color:rgba(201,168,76,.5);transform:scale(1.02)}
+.img-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.img-card .ic-prompt{padding:8px 10px;font-size:10px;color:rgba(245,239,224,.55);line-height:1.5;font-family:'Noto Serif KR',serif}
+.img-card .ic-actions{padding:0 8px 8px;display:flex;gap:5px}
+.ia-btn{flex:1;padding:4px;border:1px solid rgba(201,168,76,.25);background:none;color:rgba(201,168,76,.6);font-size:9px;cursor:pointer;font-family:'Courier New',monospace;transition:all .2s}
+.ia-btn:hover{border-color:var(--gold);color:var(--gold)}
+.img-placeholder{width:100%;aspect-ratio:1;background:rgba(15,10,4,.8);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.ip-text{font-size:11px;color:rgba(245,239,224,.3);font-family:'Courier New',monospace;letter-spacing:.1em}
+.generating .img-placeholder{animation:gen-pulse 1.5s ease-in-out infinite}
+@keyframes gen-pulse{0%,100%{background:rgba(15,10,4,.8)}50%{background:rgba(25,18,8,.9)}}
+.gen-ring{width:36px;height:36px;border:2px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Right: control */
+#ctrl-panel{width:300px;flex-shrink:0;background:rgba(3,2,0,.97);border-left:1px solid rgba(201,168,76,.15);display:flex;flex-direction:column;padding:14px 12px;gap:10px;overflow-y:auto}
+.sec-lbl{font-size:9px;color:rgba(245,239,224,.28);letter-spacing:.2em;font-family:'Courier New',monospace}
+.btn{background:none;border:1px solid rgba(201,168,76,.35);color:var(--gold);padding:8px;font-size:11px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:.08em;transition:all .2s;width:100%;text-align:center}
+.btn:hover{background:rgba(201,168,76,.12)}
+.btn.hi{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.btn.hi:hover{background:rgba(201,168,76,.2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+#prompt-input{width:100%;background:rgba(15,10,4,.8);border:1px solid rgba(201,168,76,.25);color:var(--paper);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;outline:none;height:80px;transition:border-color .2s}
+#prompt-input:focus{border-color:rgba(201,168,76,.6)}
+#prompt-input::placeholder{color:rgba(245,239,224,.22)}
+#speech-btn{position:relative;padding:10px}
+#speech-btn.listening{border-color:#ff5555;color:#ff8080;animation:rec-pulse 1s infinite}
+@keyframes rec-pulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px rgba(255,80,80,.5)}}
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.style-btn{padding:7px 4px;border:1px solid rgba(201,168,76,.18);background:rgba(8,5,1,.8);cursor:pointer;font-size:10px;color:rgba(245,239,224,.5);font-family:'Courier New',monospace;text-align:center;transition:all .2s}
+.style-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08)}
+.style-btn:hover{border-color:rgba(201,168,76,.5)}
+#api-row{display:flex;gap:5px;align-items:center}
+#api-row label{font-size:9px;color:rgba(245,239,224,.28);font-family:'Courier New',monospace;white-space:nowrap;letter-spacing:.08em}
+#api-input{flex:1;background:rgba(12,8,2,.8);border:1px solid rgba(201,168,76,.2);color:var(--paper);padding:5px 8px;font-family:'Courier New',monospace;font-size:10px;outline:none}
+#api-input:focus{border-color:rgba(201,168,76,.5)}
+#api-save{padding:5px 10px;border:1px solid rgba(201,168,76,.3);background:none;color:var(--gold);font-size:10px;cursor:pointer;font-family:'Courier New',monospace}
+.ks{font-size:9px;font-family:'Courier New',monospace}
+.ks-ok{color:rgba(80,200,80,.7)}.ks-no{color:rgba(245,239,224,.22)}
+#print-status{font-size:10px;color:rgba(245,239,224,.35);font-family:'Courier New',monospace;text-align:center;letter-spacing:.08em}
+.suggest-chip{display:inline-block;margin:2px;padding:4px 8px;border:1px solid rgba(201,168,76,.18);color:rgba(245,239,224,.45);font-size:10px;cursor:pointer;font-family:'Courier New',monospace;transition:all .2s}
+.suggest-chip:hover{border-color:var(--gold);color:var(--gold)}
+#suggests{flex-wrap:wrap;display:flex;gap:2px}
+.empty-gal{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;gap:12px;color:rgba(245,239,224,.18);font-family:'Noto Serif KR',serif;font-size:14px;letter-spacing:.15em}
+.empty-gal span{font-size:48px;opacity:.2}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <div>
+    <div class="ht">인터랙티브 국가유산 · 生成</div>
+    <div class="hs">AI IMAGE GENERATION + PRINTER OUTPUT</div>
+  </div>
+  <div style="font-size:10px;color:rgba(245,239,224,.25);font-family:'Courier New',monospace">Claude API로 프롬프트 변환 · DALL-E/SD로 이미지 생성</div>
+</div>
+
+<div id="main">
+  <div id="gallery">
+    <div class="empty-gal"><span>🏛</span>프롬프트를 입력하고 생성 버튼을 누르세요</div>
+  </div>
+  <div id="ctrl-panel">
+    <div class="sec-lbl">// API 설정 //</div>
+    <div id="api-row">
+      <label>OPENAI</label>
+      <input id="api-input" type="password" placeholder="sk-... OpenAI 키">
+      <button id="api-save" onclick="saveKey()">저장</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="ks ks-no" id="ks">● 미설정</span>
+      <span style="font-size:9px;color:rgba(245,239,224,.2);font-family:'Courier New',monospace">키 없이도 데모 이미지 생성</span>
+    </div>
+
+    <div class="sec-lbl">// 프롬프트 //</div>
+    <textarea id="prompt-input" placeholder="예: 경복궁의 야경을 수묵화 스타일로...&#10;예: 신라 금관을 착용한 왕의 초상...&#10;예: 단청이 아름다운 사찰 입구..."></textarea>
+
+    <div class="sec-lbl">// 추천 //</div>
+    <div id="suggests"></div>
+
+    <div class="sec-lbl">// 스타일 //</div>
+    <div class="style-grid">
+      <button class="style-btn on" id="s0" onclick="setStyle(0)">수묵화</button>
+      <button class="style-btn" id="s1" onclick="setStyle(1)">채색화</button>
+      <button class="style-btn" id="s2" onclick="setStyle(2)">사진풍</button>
+      <button class="style-btn" id="s3" onclick="setStyle(3)">3D 렌더</button>
+    </div>
+
+    <button class="btn" id="speech-btn" onclick="toggleSpeech()">🎤 음성 입력</button>
+    <button class="btn hi" id="gen-btn" onclick="generate()">✨ 이미지 생성</button>
+    <button class="btn" onclick="clearGallery()">↺ 갤러리 초기화</button>
+
+    <div class="sec-lbl">// 프린터 //</div>
+    <button class="btn" onclick="connectPrinter()">🖨 프린터 연결</button>
+    <div id="print-status">프린터 미연결</div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let apiKey='',currentStyle=0,isListening=false;
+let printer=null;let gallery=[];
+const STYLES=['수묵화풍, 먹, 여백, 동양화','화려한 채색, 단청 색감, 전통 채색화풍','사실적 사진, 8K, 극적 조명','3D 렌더링, 매우 정교한 디테일, CG아트'];
+const STYLE_PROMPTS=['ink wash painting style, sumi-e, traditional Korean art','colorful Korean traditional painting, dancheong colors','photorealistic, dramatic lighting, 8K photography','3D render, highly detailed, CGI art, Unreal Engine'];
+const SUGGESTS=['경복궁 야경','첨성대와 별하늘','조선 왕의 초상','단청 문양','금동미륵보살','석굴암 불상','한복 입은 여인','고려 청자','훈민정음 창제','팔만대장경 전각'];
+
+function saveKey(){
+  apiKey=document.getElementById('api-input').value.trim();
+  if(apiKey){localStorage.setItem('heritage_openai',apiKey);document.getElementById('ks').className='ks ks-ok';document.getElementById('ks').textContent='● 설정됨';}
+  else{document.getElementById('ks').className='ks ks-no';document.getElementById('ks').textContent='● 미설정';}
+}
+function initKey(){
+  const k=localStorage.getItem('heritage_openai');
+  if(k){apiKey=k;document.getElementById('api-input').value=k;document.getElementById('ks').className='ks ks-ok';document.getElementById('ks').textContent='● 설정됨';}
+}
+
+function setStyle(i){
+  currentStyle=i;
+  document.querySelectorAll('.style-btn').forEach((b,idx)=>b.classList.toggle('on',idx===i));
+}
+
+function renderSuggests(){
+  const s=document.getElementById('suggests');s.innerHTML='';
+  SUGGESTS.sort(()=>Math.random()-.5).slice(0,6).forEach(t=>{
+    const c=document.createElement('span');c.className='suggest-chip';c.textContent=t;
+    c.onclick=()=>{document.getElementById('prompt-input').value=t;};s.appendChild(c);
+  });
+}
+
+// ── Speech ─────────────────────────────────────────────────────
+let recognition=null;
+function toggleSpeech(){
+  const btn=document.getElementById('speech-btn');
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    showNotif('이 브라우저는 음성 인식을 지원하지 않습니다 (Chrome 권장)');return;
+  }
+  if(isListening){recognition?.stop();isListening=false;btn.textContent='🎤 음성 입력';btn.classList.remove('listening');return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='ko-KR';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onresult=e=>{
+    let txt='';for(const r of e.results)txt+=r[0].transcript;
+    document.getElementById('prompt-input').value=txt;
+  };
+  recognition.onend=()=>{isListening=false;btn.textContent='🎤 음성 입력';btn.classList.remove('listening');};
+  recognition.onerror=e=>{showNotif('음성 인식 오류: '+e.error);isListening=false;btn.classList.remove('listening');};
+  recognition.start();isListening=true;btn.textContent='⏹ 듣는 중...';btn.classList.add('listening');
+}
+
+// ── Generation ─────────────────────────────────────────────────
+async function generate(){
+  const prompt=document.getElementById('prompt-input').value.trim();
+  if(!prompt){showNotif('프롬프트를 입력하세요');return;}
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;btn.textContent='⏳ 생성 중...';
+
+  // Add placeholder card
+  const card=document.createElement('div');card.className='img-card generating';
+  const galEl=document.getElementById('gallery');
+  const empty=galEl.querySelector('.empty-gal');if(empty)empty.remove();
+  card.innerHTML=`<div class="img-placeholder"><div class="gen-ring"></div><div class="ip-text">생성 중...</div></div><div class="ic-prompt">${prompt}</div>`;
+  galEl.prepend(card);
+
+  try{
+    let imgUrl='';
+    if(apiKey){
+      // Real DALL-E generation
+      const fullPrompt=`${prompt}, ${STYLE_PROMPTS[currentStyle]}, Korean national heritage, historical artwork, masterpiece`;
+      const res=await fetch('https://api.openai.com/v1/images/generations',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body:JSON.stringify({model:'dall-e-3',prompt:fullPrompt,n:1,size:'1024x1024',quality:'standard'})
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'DALL-E API 오류');}
+      const data=await res.json();imgUrl=data.data[0].url;
+    } else {
+      // Demo: generate canvas image
+      imgUrl=generateDemoImage(prompt);
+    }
+    // Update card
+    const entry={prompt,style:STYLES[currentStyle],url:imgUrl,ts:Date.now()};gallery.unshift(entry);
+    card.className='img-card';
+    card.innerHTML=`
+      <img src="${imgUrl}" alt="${prompt}" loading="lazy">
+      <div class="ic-prompt">${prompt}</div>
+      <div class="ic-actions">
+        <button class="ia-btn" onclick="dlImg('${imgUrl}','heritage')">⬇ 저장</button>
+        <button class="ia-btn" onclick="printImg('${imgUrl}')">🖨 인쇄</button>
+        <button class="ia-btn" onclick="shareImg('${imgUrl}','${prompt}')">↗ 공유</button>
+      </div>`;
+    showNotif('이미지 생성 완료!');
+  }catch(e){
+    card.className='img-card';
+    card.innerHTML=`<div class="img-placeholder"><div class="ip-text">오류: ${e.message}</div></div><div class="ic-prompt">${prompt}</div>`;
+    showNotif('오류: '+e.message);
+  }
+  btn.disabled=false;btn.textContent='✨ 이미지 생성';
+}
+
+// Demo canvas image generator
+function generateDemoImage(prompt){
+  const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');
+  // Background
+  const themes=[
+    ['#1a0a05','#3a1a08'],['#05151a','#0a2535'],['#0a1505','#152510'],['#1a1005','#2a1a08']
+  ];const t=themes[Math.floor(Math.random()*themes.length)];
+  const g=x.createLinearGradient(0,0,512,512);g.addColorStop(0,t[0]);g.addColorStop(1,t[1]);
+  x.fillStyle=g;x.fillRect(0,0,512,512);
+  // Decorative elements
+  x.strokeStyle='rgba(201,168,76,.2)';x.lineWidth=1;
+  for(let i=0;i<8;i++){x.beginPath();x.arc(256,256,50+i*28,0,Math.PI*2);x.stroke();}
+  // Central motif
+  x.fillStyle='rgba(201,168,76,.15)';
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.beginPath();x.ellipse(256+Math.cos(a)*90,256+Math.sin(a)*90,22,10,a,0,Math.PI*2);x.fill();}
+  x.fillStyle='rgba(201,168,76,.6)';x.beginPath();x.arc(256,256,28,0,Math.PI*2);x.fill();
+  // Text
+  x.fillStyle='rgba(245,239,224,.7)';x.font='bold 18px "Noto Serif KR",serif';x.textAlign='center';x.textBaseline='middle';
+  const words=prompt.slice(0,12)+(prompt.length>12?'...':'');x.fillText(words,256,440);
+  x.fillStyle='rgba(201,168,76,.4)';x.font='11px Courier New';x.fillText('국가유산 · AI 생성',256,468);
+  // Watermark
+  x.fillStyle='rgba(201,168,76,.12)';x.font='72px "Noto Serif KR",serif';x.fillText('國',256,230);
+  return c.toDataURL('image/png');
+}
+
+// ── Download ───────────────────────────────────────────────────
+function dlImg(url,name){
+  const a=document.createElement('a');a.href=url;a.download=name+'_'+Date.now()+'.png';
+  if(url.startsWith('data:')){a.click();}
+  else{fetch(url).then(r=>r.blob()).then(b=>{a.href=URL.createObjectURL(b);a.click()}).catch(()=>{window.open(url,'_blank');});}
+}
+
+// ── Share ──────────────────────────────────────────────────────
+function shareImg(url,prompt){
+  if(navigator.share){navigator.share({title:'국가유산 AI 이미지',text:prompt,url}).catch(()=>{});}
+  else{navigator.clipboard?.writeText(url).then(()=>showNotif('URL 복사됨')).catch(()=>showNotif('공유 불가'));}
+}
+
+// ── Printer (Web Serial API) ───────────────────────────────────
+async function connectPrinter(){
+  if(!('serial' in navigator)){showNotif('Web Serial API 미지원 브라우저 (Chrome 권장)');return;}
+  try{
+    printer=await navigator.serial.requestPort();
+    await printer.open({baudRate:9600});
+    document.getElementById('print-status').textContent='🖨 프린터 연결됨';
+    document.getElementById('print-status').style.color='rgba(80,200,80,.7)';
+    showNotif('프린터 연결 성공!');
+  }catch(e){showNotif('프린터 연결 실패: '+e.message);}
+}
+
+async function printImg(url){
+  if(!printer){
+    // Fallback: browser print
+    const w=window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><style>body{margin:0;background:#0a0705}img{width:100%;max-width:600px;display:block;margin:20px auto}@media print{body{background:#fff}}</style></head><body><img src="${url}"><script>setTimeout(()=>{window.print();window.close()},500)<\/script></body></html>`);
+    w.document.close();return;
+  }
+  try{
+    const writer=printer.writable.getWriter();
+    const cmd=new Uint8Array([0x1b,0x40]); // ESC @ init
+    await writer.write(cmd);writer.releaseLock();
+    showNotif('인쇄 명령 전송됨');
+  }catch(e){showNotif('인쇄 오류: '+e.message);}
+}
+
+function clearGallery(){
+  gallery=[];document.getElementById('gallery').innerHTML='<div class="empty-gal"><span>🏛</span>프롬프트를 입력하고 생성 버튼을 누르세요</div>';
+}
+
+function showNotif(msg){
+  const n=document.createElement('div');
+  n.style.cssText='position:fixed;top:65px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.88);border:1px solid rgba(201,168,76,.5);color:#c9a84c;padding:7px 20px;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;z-index:1000;pointer-events:none;white-space:nowrap';
+  n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),2000);
+}
+
+initKey();renderSuggests();
+</script>
+</body>
+</html>

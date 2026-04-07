@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>사관 LLM · 朝鮮王朝實錄</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400&display=swap');
+:root{--gold:#c9a84c;--ink:#0f0c07;--paper:#f5efe0;--red:#8b1a1a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);font-family:'Noto Sans KR',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Header */
+#hdr{padding:12px 24px;background:rgba(0,0,0,.7);border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-title{font-family:'Noto Serif KR',serif;font-size:16px;color:var(--gold);letter-spacing:.2em}
+.hdr-sub{font-size:10px;color:rgba(245,239,224,.3);letter-spacing:.2em;font-family:'Courier New',monospace}
+#tabs{display:flex;gap:0}
+.tab{padding:7px 18px;border:1px solid rgba(201,168,76,.25);color:rgba(245,239,224,.45);font-size:11px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:.08em;background:none;transition:all .2s}
+.tab.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1)}
+.tab:hover:not(.on){color:rgba(245,239,224,.7)}
+/* Main layout */
+#main{display:flex;flex:1;overflow:hidden;min-height:0}
+/* CHAT PANEL */
+#chat-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid rgba(201,168,76,.12);min-width:0}
+#msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+#msgs::-webkit-scrollbar{width:4px}
+#msgs::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25)}
+.msg{max-width:85%;padding:10px 14px;line-height:1.65;font-size:13px}
+.msg.user{background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);align-self:flex-end;color:var(--paper)}
+.msg.ai{background:rgba(10,7,3,.8);border:1px solid rgba(201,168,76,.12);align-self:flex-start;color:rgba(245,239,224,.82)}
+.msg.ai .role{font-size:9px;color:rgba(201,168,76,.5);font-family:'Courier New',monospace;letter-spacing:.1em;margin-bottom:5px}
+.msg.sys{background:rgba(5,3,1,.6);border:1px solid rgba(201,168,76,.08);align-self:center;font-size:11px;color:rgba(245,239,224,.35);font-family:'Courier New',monospace;max-width:100%;letter-spacing:.08em}
+.typing{align-self:flex-start;padding:10px 14px;background:rgba(10,7,3,.8);border:1px solid rgba(201,168,76,.12)}
+.dot{display:inline-block;width:6px;height:6px;background:rgba(201,168,76,.5);border-radius:50%;margin-right:4px;animation:pulse .9s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+#input-bar{padding:12px 16px;border-top:1px solid rgba(201,168,76,.15);display:flex;gap:8px;flex-shrink:0;background:rgba(3,2,0,.8)}
+#msg-input{flex:1;background:rgba(15,10,4,.8);border:1px solid rgba(201,168,76,.25);color:var(--paper);padding:9px 14px;font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;outline:none;transition:border-color .2s;max-height:120px}
+#msg-input:focus{border-color:rgba(201,168,76,.6)}
+#msg-input::placeholder{color:rgba(245,239,224,.25)}
+.send-btn{padding:9px 20px;border:1px solid rgba(201,168,76,.4);background:none;color:var(--gold);font-family:'Courier New',monospace;font-size:12px;cursor:pointer;letter-spacing:.08em;transition:all .2s;align-self:flex-end;white-space:nowrap}
+.send-btn:hover{background:rgba(201,168,76,.15)}
+/* SILLOK PANEL */
+#sillok-panel{width:420px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
+#sillok-scroll{flex:1;overflow-y:auto;padding:0}
+#sillok-scroll::-webkit-scrollbar{width:4px}
+#sillok-scroll::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2)}
+/* Sillok page style */
+.sillok-page{background:linear-gradient(135deg,#1c1408 0%,#120d06 100%);border-bottom:1px solid rgba(201,168,76,.1);padding:20px 22px;position:relative}
+.sillok-page::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.sillok-date{font-family:'Noto Serif KR',serif;font-size:11px;color:rgba(201,168,76,.55);letter-spacing:.2em;margin-bottom:8px;font-style:italic}
+.sillok-text{font-family:'Noto Serif KR',serif;font-size:13px;line-height:1.9;color:rgba(245,239,224,.85);position:relative;z-index:1}
+.sillok-text strong{color:var(--gold)}
+.sillok-seal{position:absolute;top:14px;right:16px;width:38px;height:38px;border:2px solid rgba(139,26,26,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(139,26,26,.08)}
+.sillok-seal span{font-family:'Noto Serif KR',serif;font-size:10px;color:rgba(139,26,26,.7)}
+.sillok-tags{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.stag{font-size:9px;padding:2px 7px;border:1px solid rgba(201,168,76,.2);color:rgba(201,168,76,.5);font-family:'Courier New',monospace;letter-spacing:.05em}
+.empty-sillok{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:rgba(245,239,224,.2);font-family:'Noto Serif KR',serif;font-size:13px;letter-spacing:.15em;gap:10px}
+.empty-sillok span{font-size:32px;opacity:.25}
+/* Public feed */
+#public-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#feed-scroll{flex:1;overflow-y:auto;padding:12px}
+#feed-scroll::-webkit-scrollbar{width:4px}
+#feed-scroll::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2)}
+.feed-card{background:rgba(12,8,3,.75);border:1px solid rgba(201,168,76,.12);padding:14px 16px;margin-bottom:8px;transition:border-color .2s}
+.feed-card:hover{border-color:rgba(201,168,76,.3)}
+.fc-meta{font-size:10px;color:rgba(245,239,224,.3);font-family:'Courier New',monospace;letter-spacing:.08em;margin-bottom:7px;display:flex;justify-content:space-between}
+.fc-text{font-family:'Noto Serif KR',serif;font-size:12px;line-height:1.75;color:rgba(245,239,224,.72)}
+.fc-tags{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.fc-btn{margin-top:8px;padding:4px 12px;border:1px solid rgba(201,168,76,.2);background:none;color:rgba(201,168,76,.5);font-size:10px;cursor:pointer;font-family:'Courier New',monospace;transition:all .2s}
+.fc-btn:hover{border-color:var(--gold);color:var(--gold)}
+#sillok-ctrl{padding:10px 14px;border-top:1px solid rgba(201,168,76,.12);display:flex;gap:7px;flex-shrink:0;background:rgba(2,1,0,.8)}
+.ctrl-btn{padding:6px 14px;border:1px solid rgba(201,168,76,.3);background:none;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:.06em;transition:all .2s;white-space:nowrap}
+.ctrl-btn:hover{background:rgba(201,168,76,.12)}
+#api-key-bar{padding:8px 16px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;gap:8px;flex-shrink:0}
+#api-key-bar label{font-size:10px;color:rgba(245,239,224,.35);font-family:'Courier New',monospace;letter-spacing:.1em;white-space:nowrap}
+#api-key-input{flex:1;background:rgba(15,10,4,.8);border:1px solid rgba(201,168,76,.2);color:var(--paper);padding:5px 10px;font-family:'Courier New',monospace;font-size:11px;outline:none}
+#api-key-input:focus{border-color:rgba(201,168,76,.5)}
+#api-save{padding:5px 14px;border:1px solid rgba(201,168,76,.3);background:none;color:var(--gold);font-size:10px;cursor:pointer;font-family:'Courier New',monospace}
+#key-status{font-size:10px;font-family:'Courier New',monospace;min-width:60px}
+.ks-ok{color:rgba(80,200,80,.7)}
+.ks-no{color:rgba(245,239,224,.25)}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <div>
+    <div class="hdr-title">사관 LLM · 史官</div>
+    <div class="hdr-sub">朝鮮王朝實錄 FORMAT CONVERTER</div>
+  </div>
+  <div id="tabs">
+    <button class="tab on" id="tab-chat" onclick="switchTab('chat')">대화</button>
+    <button class="tab" id="tab-sillok" onclick="switchTab('sillok')">실록</button>
+    <button class="tab" id="tab-public" onclick="switchTab('public')">공개 열람</button>
+  </div>
+</div>
+
+<div id="api-key-bar">
+  <label>API KEY</label>
+  <input id="api-key-input" type="password" placeholder="sk-ant-... (Anthropic API 키 입력)">
+  <button id="api-save" onclick="saveKey()">저장</button>
+  <span id="key-status" class="ks-no">● 미설정</span>
+</div>
+
+<div id="main">
+  <!-- CHAT VIEW -->
+  <div id="chat-view" style="display:flex;flex:1;overflow:hidden">
+    <div id="chat-panel">
+      <div id="msgs">
+        <div class="msg sys">사관(史官)이 대기 중입니다. 오늘 있었던 일을 자유롭게 이야기해 주세요. 실록 형식으로 기록하겠습니다.</div>
+      </div>
+      <div id="input-bar">
+        <textarea id="msg-input" rows="1" placeholder="오늘 있었던 일을 이야기하세요..." onkeydown="onKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMsg()">전송 →</button>
+      </div>
+    </div>
+    <div id="sillok-panel">
+      <div id="sillok-scroll">
+        <div class="empty-sillok"><span>📜</span>대화 후 실록이 기록됩니다</div>
+      </div>
+      <div id="sillok-ctrl">
+        <button class="ctrl-btn" onclick="saveSillok()">📜 실록 저장</button>
+        <button class="ctrl-btn" onclick="publishSillok()">🌐 공개 등록</button>
+        <button class="ctrl-btn" onclick="dlSillok()">⬇ 다운로드</button>
+        <button class="ctrl-btn" onclick="clearChat()">↺ 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLIC VIEW -->
+  <div id="public-view" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+    <div id="feed-scroll">
+      <div style="text-align:center;padding:30px;color:rgba(245,239,224,.25);font-family:'Courier New',monospace;font-size:11px;letter-spacing:.15em">공개 실록을 불러오는 중...</div>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid rgba(201,168,76,.1);background:rgba(2,1,0,.8);display:flex;gap:7px">
+      <button class="ctrl-btn" onclick="loadPublic()">↻ 새로고침</button>
+      <button class="ctrl-btn" onclick="switchTab('chat')">← 대화로 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let msgs=[];let sillokEntries=[];let apiKey='';let isTyping=false;
+
+// Local storage for entries (cloud simulation with localStorage)
+const STORE_KEY='heritage_sillok_v1';
+const PUBLIC_KEY='heritage_sillok_public_v1';
+
+function saveKey(){
+  apiKey=document.getElementById('api-key-input').value.trim();
+  if(apiKey){localStorage.setItem('heritage_api_key',apiKey);document.getElementById('key-status').className='ks-ok';document.getElementById('key-status').textContent='● 설정됨';}
+  else{document.getElementById('key-status').className='ks-no';document.getElementById('key-status').textContent='● 미설정';}
+}
+
+function initKey(){
+  const k=localStorage.getItem('heritage_api_key');
+  if(k){apiKey=k;document.getElementById('api-key-input').value=k;document.getElementById('key-status').className='ks-ok';document.getElementById('key-status').textContent='● 설정됨';}
+}
+
+// ── Tab switching ──────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+tab).classList.add('on');
+  document.getElementById('chat-view').style.display=tab==='chat'||tab==='sillok'?'flex':'none';
+  document.getElementById('public-view').style.display=tab==='public'?'flex':'none';
+  document.getElementById('sillok-panel').style.display=tab==='sillok'||tab==='chat'?'flex':'none';
+  if(tab==='public') loadPublic();
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+function addMsg(role,text){
+  const msgsEl=document.getElementById('msgs');
+  const div=document.createElement('div');
+  div.className='msg '+(role==='user'?'user':role==='system'?'sys':'ai');
+  if(role==='ai'){const r=document.createElement('div');r.className='role';r.textContent='◈ 사관(史官)';div.appendChild(r);}
+  const p=document.createElement('p');p.textContent=text;div.appendChild(p);
+  msgsEl.appendChild(div);msgsEl.scrollTop=msgsEl.scrollHeight;
+  return div;
+}
+function showTyping(){
+  const msgsEl=document.getElementById('msgs');
+  const div=document.createElement('div');div.className='typing';div.id='typing-ind';
+  div.innerHTML='<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  msgsEl.appendChild(div);msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+function hideTyping(){document.getElementById('typing-ind')?.remove();}
+
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+
+async function sendMsg(){
+  if(isTyping)return;
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();if(!text)return;
+  input.value='';input.style.height='auto';
+  msgs.push({role:'user',content:text});
+  addMsg('user',text);
+  isTyping=true;showTyping();
+  try{
+    const reply=await callClaude(msgs);
+    hideTyping();
+    msgs.push({role:'assistant',content:reply});
+    addMsg('ai',reply);
+    // Auto-generate sillok after every 2 user messages
+    if(msgs.filter(m=>m.role==='user').length%2===0) await generateSillok();
+  }catch(e){
+    hideTyping();
+    addMsg('system','오류: '+e.message+' (API 키를 확인해 주세요)');
+  }
+  isTyping=false;
+}
+
+async function callClaude(conversation,system=''){
+  if(!apiKey) throw new Error('API 키가 설정되지 않았습니다');
+  const systemPrompt=system||`당신은 조선 시대의 사관(史官)입니다. 사용자와 편안하게 대화하며 그들의 일상, 생각, 경험에 대해 이야기를 나눕니다. 
+친근하지만 지혜롭게 답변하고, 필요할 때 조선 시대의 고사나 지혜를 현대적으로 해석하여 공유하세요.
+한국어로 답변하되, 자연스럽고 따뜻한 톤을 유지하세요. 답변은 2-4문장으로 간결하게 해주세요.`;
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:systemPrompt,messages:conversation})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API 오류');}
+  const data=await res.json();return data.content[0].text;
+}
+
+// ── Sillok generation ─────────────────────────────────────────
+const JOSEON_ERAS=['世宗','太宗','成宗','宣祖','英祖','正祖','純祖'];
+function getDate(){
+  const now=new Date();const era=JOSEON_ERAS[Math.floor(Math.random()*JOSEON_ERAS.length)];
+  const yr=Math.floor(Math.random()*30)+1;
+  const months=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const m=months[now.getMonth()];const d=now.getDate();
+  return `${era} ${yr}年 ${m} ${d}日 (현대 ${now.getFullYear()}년 ${now.getMonth()+1}월 ${d}일)`;
+}
+
+async function generateSillok(){
+  if(!apiKey||msgs.length<2) return;
+  const convSummary=msgs.map(m=>`${m.role==='user'?'사용자':'사관'}: ${m.content}`).join('\n');
+  const sillokSystem=`당신은 조선왕조실록의 사관(史官)입니다. 다음 현대인과의 대화를 조선왕조실록 스타일로 변환하세요.
+
+규칙:
+1. 한자와 한국어를 혼용하여 고풍스러운 문체로 작성
+2. 3인칭으로 서술 (예: "아무개가 아뢰기를...")
+3. 현대 이야기를 조선 시대 맥락으로 해석
+4. 100-200자 이내
+5. 실록 특유의 엄숙하고 격식 있는 문체 유지
+6. 인명은 '某氏(某씨)' 형식으로 처리
+7. JSON 형식으로만 응답: {"text":"실록 텍스트","tags":["태그1","태그2","태그3"]}`;
+  
+  try{
+    const result=await callClaude([{role:'user',content:`다음 대화를 실록으로 변환하세요:\n${convSummary}`}],sillokSystem);
+    let parsed;
+    try{
+      const clean=result.replace(/```json|```/g,'').trim();
+      parsed=JSON.parse(clean);
+    }catch(e){parsed={text:result,tags:['일상','현대']};}
+    const entry={date:getDate(),text:parsed.text,tags:parsed.tags||[],id:Date.now()};
+    sillokEntries.push(entry);
+    renderSillok();
+  }catch(e){console.warn('Sillok generation failed:',e);}
+}
+
+function renderSillok(){
+  const scroll=document.getElementById('sillok-scroll');scroll.innerHTML='';
+  if(!sillokEntries.length){scroll.innerHTML='<div class="empty-sillok"><span>📜</span>대화 후 실록이 기록됩니다</div>';return;}
+  sillokEntries.slice().reverse().forEach(entry=>{
+    const page=document.createElement('div');page.className='sillok-page';
+    page.innerHTML=`
+      <div class="sillok-seal"><span>실록</span></div>
+      <div class="sillok-date">${entry.date}</div>
+      <div class="sillok-text">${entry.text}</div>
+      <div class="sillok-tags">${(entry.tags||[]).map(t=>`<span class="stag">${t}</span>`).join('')}</div>
+    `;
+    scroll.appendChild(page);
+  });
+  scroll.scrollTop=0;
+}
+
+function clearChat(){msgs=[];sillokEntries=[];document.getElementById('msgs').innerHTML='<div class="msg sys">사관(史官)이 대기 중입니다. 오늘 있었던 일을 자유롭게 이야기해 주세요.</div>';renderSillok();}
+
+// ── Save / Publish ─────────────────────────────────────────────
+function saveSillok(){
+  const saved=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');
+  saved.push(...sillokEntries);
+  localStorage.setItem(STORE_KEY,JSON.stringify(saved.slice(-50)));
+  showNotif('실록이 저장되었습니다');
+}
+
+function publishSillok(){
+  if(!sillokEntries.length){showNotif('저장할 실록이 없습니다');return;}
+  const pub=JSON.parse(localStorage.getItem(PUBLIC_KEY)||'[]');
+  const newEntries=sillokEntries.map(e=>({...e,published:Date.now()}));
+  pub.unshift(...newEntries);
+  localStorage.setItem(PUBLIC_KEY,JSON.stringify(pub.slice(-100)));
+  showNotif('실록이 공개 등록되었습니다');
+  saveSillok();
+}
+
+function dlSillok(){
+  if(!sillokEntries.length){showNotif('다운로드할 실록이 없습니다');return;}
+  const text='朝鮮王朝實錄\n\n'+sillokEntries.map(e=>`【${e.date}】\n${e.text}\n[${(e.tags||[]).join(', ')}]\n`).join('\n---\n\n');
+  const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(text);a.download='sillok.txt';a.click();
+}
+
+// ── Public Feed ───────────────────────────────────────────────
+function loadPublic(){
+  const feed=document.getElementById('feed-scroll');
+  const pub=JSON.parse(localStorage.getItem(PUBLIC_KEY)||'[]');
+  if(!pub.length){feed.innerHTML='<div style="text-align:center;padding:40px;color:rgba(245,239,224,.2);font-family:\'Courier New\',monospace;font-size:11px;letter-spacing:.15em">등록된 실록이 없습니다<br>대화 후 공개 등록해 보세요</div>';return;}
+  feed.innerHTML='';
+  pub.forEach(entry=>{
+    const card=document.createElement('div');card.className='feed-card';
+    const d=new Date(entry.published||entry.id);
+    card.innerHTML=`
+      <div class="fc-meta"><span>${entry.date}</span><span>${d.toLocaleDateString('ko-KR')}</span></div>
+      <div class="fc-text">${entry.text}</div>
+      <div class="fc-tags">${(entry.tags||[]).map(t=>`<span class="stag">${t}</span>`).join('')}</div>
+    `;
+    feed.appendChild(card);
+  });
+}
+
+function showNotif(msg){
+  const n=document.createElement('div');
+  n.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);border:1px solid rgba(201,168,76,.5);color:#c9a84c;padding:8px 22px;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;z-index:1000;pointer-events:none';
+  n.textContent=msg;document.body.appendChild(n);setTimeout(()=>n.remove(),2200);
+}
+
+// Demo mode: load sample if no API key
+function loadDemo(){
+  const sample={
+    date:'英祖 32年 三月 15日 (현대 2024년 3월 15일)',
+    text:'現代人某氏(현대인 모씨) 왈(曰), 오늘 직장에서 큰 발표가 있었노라. 긴장되었으나 동료들의 도움으로 무사히 마치니, 사관은 이를 기록하노라. 협력의 미덕은 예나 지금이나 다름없도다.',
+    tags:['직장','협력','발표'],id:Date.now()-1000
+  };
+  sillokEntries=[sample];renderSillok();
+}
+
+initKey();loadDemo();
+</script>
+</body>
+</html>

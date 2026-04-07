@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>국가유산 CRT</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;width:100vw;height:100vh;font-family:'Courier New',monospace}
+#vid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:none}
+#main-c{position:fixed;inset:0;width:100%;height:100%}
+#three-c{position:fixed;inset:0;pointer-events:none;z-index:5}
+#corners{position:fixed;inset:0;z-index:8;pointer-events:none}
+.cor{position:absolute;width:55px;height:55px}
+.cor svg{width:100%;height:100%;opacity:.55}
+#cor-tl{top:10px;left:10px}#cor-tr{top:10px;right:10px;transform:scaleX(-1)}
+#cor-bl{bottom:10px;left:10px;transform:scaleY(-1)}#cor-br{bottom:10px;right:10px;transform:scale(-1)}
+#ctrl{position:fixed;top:14px;right:14px;z-index:20;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cbtn{background:rgba(0,0,0,.72);border:1px solid rgba(0,255,65,.3);color:rgba(0,255,65,.8);padding:6px 12px;font-family:'Courier New',monospace;font-size:10px;cursor:pointer;letter-spacing:.1em;transition:all .2s;white-space:nowrap}
+.cbtn:hover{background:rgba(0,255,65,.1);border-color:rgba(0,255,65,.7)}
+.cbtn.on{background:rgba(0,255,65,.15);border-color:#00ff41;color:#00ff41}
+#status{position:fixed;bottom:14px;left:14px;z-index:20;font-size:10px;color:rgba(0,255,65,.45);letter-spacing:.1em}
+#intensity-row{position:fixed;bottom:40px;left:14px;z-index:20;display:flex;align-items:center;gap:8px}
+#intensity-row label{font-size:9px;color:rgba(0,255,65,.4);letter-spacing:.1em}
+#intensity-row input{width:80px;accent-color:#00ff41}
+#model-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9;pointer-events:none;text-align:center;opacity:0;transition:opacity .5s}
+#model-hint.show{opacity:1}
+.mh-txt{font-family:'Courier New',monospace;font-size:13px;color:rgba(201,168,76,.9);letter-spacing:.15em;background:rgba(0,0,0,.7);padding:7px 18px;border:1px solid rgba(201,168,76,.35)}
+#model-name{position:fixed;bottom:55px;right:14px;z-index:20;font-size:11px;color:rgba(201,168,76,.6);letter-spacing:.1em}
+#no-cam{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;z-index:50;gap:14px}
+#no-cam p{color:rgba(0,255,65,.55);font-size:12px;letter-spacing:.18em;text-align:center;line-height:1.7}
+.start-btn{border:1px solid rgba(0,255,65,.4);background:none;color:rgba(0,255,65,.8);padding:9px 28px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;cursor:pointer;transition:all .2s}
+.start-btn:hover{background:rgba(0,255,65,.1)}
+</style>
+</head>
+<body>
+<video id="vid" autoplay muted playsinline></video>
+<canvas id="main-c"></canvas>
+<div id="three-c"></div>
+
+<div id="corners">
+  <div class="cor" id="cor-tl"><svg viewBox="0 0 55 55" fill="none"><path d="M2 53 L2 2 L53 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c"/></svg></div>
+  <div class="cor" id="cor-tr"><svg viewBox="0 0 55 55" fill="none"><path d="M2 53 L2 2 L53 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c"/></svg></div>
+  <div class="cor" id="cor-bl"><svg viewBox="0 0 55 55" fill="none"><path d="M2 53 L2 2 L53 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c"/></svg></div>
+  <div class="cor" id="cor-br"><svg viewBox="0 0 55 55" fill="none"><path d="M2 53 L2 2 L53 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="2.5" fill="#c9a84c"/></svg></div>
+</div>
+
+<div id="ctrl">
+  <button class="cbtn on" id="crt-btn" onclick="toggleCRT()">CRT ON</button>
+  <button class="cbtn" onclick="cycleModel()" id="model-btn">모델: 불국사탑</button>
+  <button class="cbtn" onclick="toggleFullscreen()">⛶ 전체화면</button>
+</div>
+<div id="intensity-row">
+  <label>CRT</label>
+  <input type="range" id="crt-int" min=".2" max="2" step=".1" value="1" oninput="crtIntensity=+this.value">
+</div>
+<div id="model-hint"><div class="mh-txt">✋ 손을 펼치면 유물이 소환됩니다</div></div>
+<div id="model-name"></div>
+<div id="status">INITIALIZING...</div>
+
+<div id="no-cam">
+  <p>국가유산 CRT 체험<br>웹캠 권한이 필요합니다</p>
+  <button class="start-btn" onclick="initWebcam()">웹캠 시작</button>
+  <p style="font-size:10px;color:rgba(0,255,65,.28);margin-top:4px">✋ 손을 펼치면 3D 국가유산이 소환됩니다</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const mainC=document.getElementById('main-c');
+const ctx=mainC.getContext('2d');
+const vid=document.getElementById('vid');
+let W,H;
+
+let crtEnabled=true,crtIntensity=1;
+let handData=[],faceData=null;
+let isOpenPalm=false,modelVisible=false,currentModelIdx=0;
+
+function resize(){W=mainC.width=window.innerWidth;H=mainC.height=window.innerHeight;}
+window.addEventListener('resize',()=>{resize();renderer.setSize(W,H);camera.aspect=W/H;camera.updateProjectionMatrix();});
+resize();
+
+// ── Three.js ──────────────────────────────────────────────────
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(W,H);renderer.setClearColor(0x000000,0);
+document.getElementById('three-c').appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(60,W/H,.1,1000);
+camera.position.set(0,0,5);
+
+const aLight=new THREE.AmbientLight(0xc9a84c,.5);scene.add(aLight);
+const dLight=new THREE.DirectionalLight(0xffd080,1.2);dLight.position.set(5,10,7);scene.add(dLight);
+const pLight=new THREE.PointLight(0x4080ff,.8,20);scene.add(pLight);
+
+const heritageGroup=new THREE.Group();scene.add(heritageGroup);
+const goldMat=new THREE.MeshPhongMaterial({color:0xc9a84c,shininess:130,specular:0xe8c96a});
+const stoneMat=new THREE.MeshPhongMaterial({color:0x887060,shininess:40});
+const ironMat=new THREE.MeshPhongMaterial({color:0x556070,shininess:80,specular:0x809080});
+
+const MODELS=[
+  {name:'불국사탑',build:()=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(1.5,.18,1.5),stoneMat);b.position.y=-1;heritageGroup.add(b);
+    for(let i=0;i<5;i++){const s=1-.15*i,tier=new THREE.Mesh(new THREE.BoxGeometry(s,.22,s),goldMat);tier.position.y=-.8+i*.3;heritageGroup.add(tier);const roof=new THREE.Mesh(new THREE.CylinderGeometry(s*.68,s*.78,.07,4),stoneMat);roof.position.y=-.8+i*.3+.14;heritageGroup.add(roof);}
+    const sp=new THREE.Mesh(new THREE.CylinderGeometry(.04,.06,.55,8),goldMat);sp.position.y=.75;heritageGroup.add(sp);
+  }},
+  {name:'첨성대',build:()=>{
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.62,.72,.28,12),stoneMat);base.position.y=-1.1;heritageGroup.add(base);
+    for(let i=0;i<12;i++){const r=.5-i*.014,t=new THREE.Mesh(new THREE.CylinderGeometry(r,r+.018,.1,12),goldMat);t.position.y=-.9+i*.14;heritageGroup.add(t);}
+    const top=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,1.1),stoneMat);top.position.y=.82;heritageGroup.add(top);
+  }},
+  {name:'금동불',build:()=>{
+    const body=new THREE.Mesh(new THREE.SphereGeometry(.45,16,16),goldMat);heritageGroup.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.28,16,16),goldMat);head.position.y=.65;heritageGroup.add(head);
+    const halo=new THREE.Mesh(new THREE.TorusGeometry(.4,.03,8,32),goldMat);halo.position.y=.65;heritageGroup.add(halo);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.5,.55,.12,8),stoneMat);base.position.y=-.6;heritageGroup.add(base);
+    const wire=new THREE.Mesh(new THREE.SphereGeometry(.48,8,8),new THREE.MeshBasicMaterial({color:0xc9a84c,wireframe:true,opacity:.2,transparent:true}));heritageGroup.add(wire);
+  }},
+  {name:'청자상감',build:()=>{
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.2,.35,.8,16),new THREE.MeshPhongMaterial({color:0x3a7a5a,shininess:150,specular:0x80c0a0}));heritageGroup.add(body);
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,.3,16),new THREE.MeshPhongMaterial({color:0x3a7a5a,shininess:150,specular:0x80c0a0}));neck.position.y=.55;heritageGroup.add(neck);
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(.14,.04,8,16),goldMat);lip.position.y=.72;heritageGroup.add(lip);
+    const base2=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.05,16),stoneMat);base2.position.y=-.43;heritageGroup.add(base2);
+  }},
+  {name:'훈민정음',build:()=>{
+    const pages=5;for(let i=0;i<pages;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.4,.04),new THREE.MeshPhongMaterial({color:0xf5efe0,shininess:20}));p.position.set((i-pages/2)*.06+.01*Math.random(),0,i*.03);p.rotation.set(0,i*.015-.04,0);heritageGroup.add(p);}
+    const cover=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,.06),new THREE.MeshPhongMaterial({color:0x3a2800,shininess:60}));cover.position.set(-.05,0,-.1);heritageGroup.add(cover);
+    const deco=new THREE.Mesh(new THREE.BoxGeometry(1.05,1.35,.01),goldMat);deco.position.set(-.05,0,-.07);heritageGroup.add(deco);
+  }},
+];
+
+function buildModel(idx){
+  while(heritageGroup.children.length)heritageGroup.remove(heritageGroup.children[0]);
+  MODELS[idx].build();heritageGroup.scale.setScalar(0);
+  document.getElementById('model-name').textContent='유물: '+MODELS[idx].name;
+}
+buildModel(0);
+
+function cycleModel(){currentModelIdx=(currentModelIdx+1)%MODELS.length;buildModel(currentModelIdx);document.getElementById('model-btn').textContent='모델: '+MODELS[currentModelIdx].name;}
+
+// ── Webcam ─────────────────────────────────────────────────────
+async function initWebcam(){
+  document.getElementById('no-cam').style.display='none';
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720,facingMode:'user'},audio:false});
+    vid.srcObject=s;vid.style.display='block';await vid.play();
+    initMP();
+  }catch(e){document.getElementById('status').textContent='웹캠 오류: '+e.message;document.getElementById('no-cam').style.display='flex';}
+}
+
+// Off-canvas for video capture
+const offC=document.createElement('canvas');const offX=offC.getContext('2d');
+function resOff(){offC.width=W;offC.height=H;}
+window.addEventListener('resize',resOff);resOff();
+
+// ── MediaPipe ──────────────────────────────────────────────────
+function initMP(){
+  document.getElementById('status').textContent='MediaPipe 로딩...';
+  let hands=null,faceMesh=null,frame=0;
+
+  if(typeof Hands!=='undefined'){
+    hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+    hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:.7,minTrackingConfidence:.5});
+    hands.onResults(r=>{handData=r.multiHandLandmarks||[];});
+  }
+  if(typeof FaceMesh!=='undefined'){
+    faceMesh=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+    faceMesh.onResults(r=>{faceData=r.multiFaceLandmarks?.[0]||null;});
+  }
+
+  if(typeof Camera!=='undefined'&&hands){
+    const cam=new Camera(vid,{onFrame:async()=>{
+      await hands.send({image:vid});
+      if(faceMesh&&frame++%2===0) await faceMesh.send({image:vid});
+    },width:640,height:480});
+    cam.start();
+    document.getElementById('status').textContent='TRACKING ACTIVE';
+  } else {
+    document.getElementById('status').textContent='CAM ACTIVE (MediaPipe CDN 오류)';
+  }
+  startRenderLoop();
+}
+
+// ── Palm detection ─────────────────────────────────────────────
+function isPalmOpen(lm){
+  if(!lm||lm.length<21)return false;
+  const ext=[[8,6],[12,10],[16,14],[20,18]].map(([t,p])=>lm[t].y<lm[p].y);
+  return ext.filter(Boolean).length>=3&&lm[4].x<lm[3].x;
+}
+function getHandRegion(lm){
+  const xs=lm.map(p=>p.x*W),ys=lm.map(p=>p.y*H);
+  const p=32;return{x:Math.min(...xs)-p,y:Math.min(...ys)-p,w:Math.max(...xs)-Math.min(...xs)+p*2,h:Math.max(...ys)-Math.min(...ys)+p*2};
+}
+function getFaceRegion(lm){
+  const xs=lm.map(p=>p.x*W),ys=lm.map(p=>p.y*H);
+  const p=18;return{x:Math.min(...xs)-p,y:Math.min(...ys)-p,w:Math.max(...xs)-Math.min(...xs)+p*2,h:Math.max(...ys)-Math.min(...ys)+p*2};
+}
+
+// ── CRT Effect ─────────────────────────────────────────────────
+function applyCRT(regions){
+  if(!crtEnabled||!regions.length)return;
+  regions.forEach(({x,y,w,h})=>{
+    if(w<=0||h<=0)return;
+    ctx.save();
+    // Scanlines
+    ctx.globalAlpha=.22*crtIntensity;
+    for(let ly=y;ly<y+h;ly+=3){ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(x,ly,w,1.5);}
+    // RGB fringe
+    ctx.globalCompositeOperation='screen';ctx.globalAlpha=.12*crtIntensity;
+    ctx.fillStyle='rgba(255,0,0,.3)';ctx.fillRect(x-2*crtIntensity,y,w,h);
+    ctx.fillStyle='rgba(0,0,255,.3)';ctx.fillRect(x+2*crtIntensity,y,w,h);
+    ctx.globalCompositeOperation='source-over';
+    // Glow edge
+    ctx.globalAlpha=.55*crtIntensity;
+    const grd=ctx.createRadialGradient(x+w/2,y+h/2,Math.min(w,h)*.28,x+w/2,y+h/2,Math.min(w,h)*.72);
+    grd.addColorStop(0,'rgba(0,255,65,0)');grd.addColorStop(1,'rgba(0,255,65,.22)');
+    ctx.fillStyle=grd;ctx.beginPath();ctx.ellipse(x+w/2,y+h/2,w/2*1.08,h/2*1.08,0,0,Math.PI*2);ctx.fill();
+    // Noise flicker
+    ctx.globalAlpha=.04*crtIntensity;
+    for(let nx2=x;nx2<x+w;nx2+=9){for(let ny=y;ny<y+h;ny+=9){if(Math.random()>.72){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.28})`;ctx.fillRect(nx2,ny,5,5);}}}
+    ctx.restore();
+  });
+}
+
+// ── 3D model update ────────────────────────────────────────────
+function update3D(){
+  if(!modelVisible||!handData.length){heritageGroup.scale.lerp(new THREE.Vector3(0,0,0),.12);return;}
+  const lm=handData[0];
+  const palmX=(1-lm[9].x)*W,palmY=lm[9].y*H;
+  const ndcX=(palmX/W)*2-1,ndcY=-(palmY/H)*2+1;
+  heritageGroup.position.x+=(ndcX*3-heritageGroup.position.x)*.15;
+  heritageGroup.position.y+=(ndcY*2+Math.sin(Date.now()/800)*.12-heritageGroup.position.y)*.15;
+  heritageGroup.rotation.y+=.016;heritageGroup.rotation.x=Math.sin(Date.now()/2000)*.1;
+  const ts=isOpenPalm?.52:0;heritageGroup.scale.lerp(new THREE.Vector3(ts,ts,ts),.1);
+  pLight.position.set(heritageGroup.position.x,heritageGroup.position.y+1,3);
+}
+
+// ── Render loop ────────────────────────────────────────────────
+function startRenderLoop(){
+  function loop(){
+    requestAnimationFrame(loop);
+    ctx.clearRect(0,0,W,H);
+    // Draw video
+    if(vid.readyState>=2){ctx.save();ctx.translate(W,0);ctx.scale(-1,1);ctx.drawImage(vid,0,0,W,H);ctx.restore();}
+    else{ctx.fillStyle='#0a0705';ctx.fillRect(0,0,W,H);}
+    // CRT regions
+    const regions=[];
+    if(faceData) regions.push(getFaceRegion(faceData));
+    handData.forEach(lm=>regions.push(getHandRegion(lm)));
+    applyCRT(regions);
+    // Vignette
+    const vig=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.7);
+    vig.addColorStop(0,'rgba(0,0,0,0)');vig.addColorStop(1,'rgba(0,0,0,.55)');
+    ctx.fillStyle=vig;ctx.fillRect(0,0,W,H);
+    // Palm check
+    let palm=false;
+    handData.forEach(lm=>{if(isPalmOpen(lm))palm=true;});
+    if(palm&&!isOpenPalm){modelVisible=true;document.getElementById('model-hint').classList.add('show');setTimeout(()=>document.getElementById('model-hint').classList.remove('show'),2000);}
+    if(!palm&&isOpenPalm) setTimeout(()=>{if(!isOpenPalm)modelVisible=handData.length>0;},500);
+    isOpenPalm=palm;
+    update3D();camera.aspect=W/H;camera.updateProjectionMatrix();renderer.setSize(W,H);renderer.render(scene,camera);
+    // HUD text
+    ctx.fillStyle='rgba(0,255,65,.22)';ctx.font='10px Courier New';ctx.textAlign='right';ctx.fillText('REC · '+new Date().toLocaleTimeString(),W-14,H-14);
+    ctx.textAlign='left';ctx.fillText('HANDS:'+handData.length+' FACE:'+(faceData?'YES':'NO'),14,H-14);
+  }
+  requestAnimationFrame(loop);
+}
+
+function toggleCRT(){crtEnabled=!crtEnabled;const b=document.getElementById('crt-btn');b.textContent='CRT '+(crtEnabled?'ON':'OFF');b.classList.toggle('on',crtEnabled);}
+function toggleFullscreen(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.();}
+
+initWebcam();
+</script>
+</body>
+</html>

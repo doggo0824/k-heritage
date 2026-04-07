@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>보존과학 체험</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@300;400&display=swap');
+:root{--gold:#c9a84c;--ink:#0f0c07;--paper:#f5efe0}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:'Noto Sans KR',sans-serif}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
+.screen.on{display:flex}
+/* Title */
+#s-title{background:radial-gradient(ellipse at 50% 40%,#1a1209 0%,#000 100%)}
+.t-main{font-family:'Noto Serif KR',serif;font-size:clamp(24px,4vw,48px);font-weight:900;color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:6px;text-shadow:0 0 40px rgba(201,168,76,.4)}
+.t-sub{font-size:12px;color:rgba(245,239,224,.35);letter-spacing:.3em;margin-bottom:44px}
+.art-cards{display:flex;gap:18px;margin-bottom:36px;flex-wrap:wrap;justify-content:center;padding:0 20px}
+.art-card{width:150px;background:rgba(18,12,5,.85);border:1px solid rgba(201,168,76,.2);padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.art-card:hover{border-color:var(--gold);transform:translateY(-4px)}
+.art-card.sel{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.ac-icon{font-size:40px;display:block;margin-bottom:8px}
+.ac-name{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;color:var(--gold)}
+.ac-sub{font-size:9px;color:rgba(245,239,224,.35);letter-spacing:.1em;margin-top:3px;font-family:'Courier New',monospace}
+.diff{position:absolute;top:5px;right:5px;font-size:8px;padding:2px 5px;border-radius:2px;font-family:'Courier New',monospace}
+.d-e{background:rgba(40,90,40,.4);color:#80c080}
+.d-m{background:rgba(120,80,15,.4);color:#d4a040}
+.d-h{background:rgba(110,20,20,.4);color:#e08080}
+.start-btn{padding:13px 46px;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Courier New',monospace;font-size:15px;letter-spacing:.2em;cursor:pointer;transition:all .2s}
+.start-btn:hover{background:rgba(201,168,76,.15);box-shadow:0 0 20px rgba(201,168,76,.3)}
+/* Game */
+#s-game{padding:0}
+#gc{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+#hud{position:absolute;top:0;left:0;right:0;z-index:5;padding:9px 18px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);pointer-events:none}
+#hud-name{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--gold);letter-spacing:.1em}
+#prog-wrap{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+#prog-bar{height:100%;background:var(--gold);border-radius:3px;width:0%;transition:width .25s}
+#hud-step{font-size:10px;color:rgba(245,239,224,.45);font-family:'Courier New',monospace}
+#hud-score{font-size:13px;color:var(--gold);font-family:'Courier New',monospace}
+#inst-bubble{position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:5;background:rgba(0,0,0,.82);border:1px solid rgba(201,168,76,.4);padding:9px 22px;font-family:'Noto Serif KR',serif;font-size:13px;color:var(--paper);text-align:center;pointer-events:none;white-space:nowrap;backdrop-filter:blur(4px)}
+.inst-key{color:var(--gold);font-family:'Courier New',monospace;font-size:14px}
+#tools-bar{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:10px}
+.tool-btn{width:54px;height:54px;background:rgba(18,12,4,.9);border:1px solid rgba(201,168,76,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;gap:2px}
+.tool-btn.act{border-color:var(--gold);background:rgba(201,168,76,.14)}
+.tool-btn:hover{border-color:rgba(201,168,76,.6)}
+.tb-em{font-size:18px;line-height:1}
+.tb-lbl{font-size:8px;color:rgba(245,239,224,.38);font-family:'Courier New',monospace}
+/* Result */
+#s-result{background:radial-gradient(ellipse at 50% 40%,#1a1209 0%,#000 100%)}
+.res-grade{font-family:'Noto Serif KR',serif;font-size:clamp(60px,12vw,110px);font-weight:900;color:var(--gold);text-shadow:0 0 60px rgba(201,168,76,.55);margin-bottom:6px}
+.res-title{font-family:'Noto Serif KR',serif;font-size:20px;color:var(--paper);margin-bottom:22px}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:260px;margin-bottom:28px}
+.res-box{background:rgba(18,12,4,.85);border:1px solid rgba(201,168,76,.2);padding:11px;text-align:center}
+.res-val{font-size:22px;font-weight:700;color:var(--gold);font-family:'Courier New',monospace}
+.res-lbl{font-size:9px;color:rgba(245,239,224,.38);letter-spacing:.1em;margin-top:2px}
+.res-btns{display:flex;gap:12px}
+</style>
+</head>
+<body>
+<!-- TITLE -->
+<div class="screen on" id="s-title">
+  <div class="t-main">보존과학 체험관</div>
+  <div class="t-sub">CONSERVATION SCIENCE EXPERIENCE</div>
+  <div class="art-cards">
+    <div class="art-card sel" id="ac-wood" onclick="selectArt('wood')">
+      <span class="diff d-e">EASY</span>
+      <span class="ac-icon">🪵</span>
+      <div class="ac-name">목재 유물</div>
+      <div class="ac-sub">WOODEN ARTIFACT</div>
+    </div>
+    <div class="art-card" id="ac-stone" onclick="selectArt('stone')">
+      <span class="diff d-m">MEDIUM</span>
+      <span class="ac-icon">🪨</span>
+      <div class="ac-name">석재 유물</div>
+      <div class="ac-sub">STONE ARTIFACT</div>
+    </div>
+    <div class="art-card" id="ac-iron" onclick="selectArt('iron')">
+      <span class="diff d-h">HARD</span>
+      <span class="ac-icon">⚔️</span>
+      <div class="ac-name">철제 유물</div>
+      <div class="ac-sub">IRON ARTIFACT</div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startGame()">보존 시작 · START</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s-game">
+  <canvas id="gc"></canvas>
+  <div id="hud">
+    <span id="hud-name">목재 유물</span>
+    <div id="prog-wrap"><div id="prog-bar"></div></div>
+    <span id="hud-step">STEP 1/5</span>
+    <span id="hud-score">0 PT</span>
+  </div>
+  <div id="inst-bubble"><span class="inst-key">[DRAG]</span> 손상 부위를 처리하세요</div>
+  <div id="tools-bar"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="res-grade" id="rg">S</div>
+  <div class="res-title" id="rt">완벽한 보존처리!</div>
+  <div class="res-grid">
+    <div class="res-box"><div class="res-val" id="rv-score">0</div><div class="res-lbl">SCORE</div></div>
+    <div class="res-box"><div class="res-val" id="rv-acc">0%</div><div class="res-lbl">ACCURACY</div></div>
+    <div class="res-box"><div class="res-val" id="rv-time">0s</div><div class="res-lbl">TIME</div></div>
+    <div class="res-box"><div class="res-val" id="rv-combo">0</div><div class="res-lbl">MAX COMBO</div></div>
+  </div>
+  <div class="res-btns">
+    <button class="start-btn" style="font-size:12px;padding:9px 24px" onclick="goTitle()">← 타이틀</button>
+    <button class="start-btn" style="font-size:12px;padding:9px 24px" onclick="startGame()">다시하기 ↺</button>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────
+let selArt='wood';
+const ARTS={
+  wood:{name:'목재 유물',col:'#8b5e3c',col2:'#a0724d',steps:[
+    {id:'clean',lbl:'먼지 제거',act:'brush',hint:'붓으로 표면을 쓸어주세요',key:'DRAG',dur:3200},
+    {id:'soak',lbl:'수분 공급',act:'spray',hint:'스프레이로 고르게 뿌리세요',key:'CLICK',dur:2800},
+    {id:'repair',lbl:'균열 접합',act:'fill',hint:'균열 부위를 클릭하세요',key:'CLICK_CRACK',dur:3800},
+    {id:'coat',lbl:'방부 코팅',act:'brush',hint:'코팅재를 골고루 바르세요',key:'DRAG',dur:3200},
+    {id:'dry',lbl:'건조 완료',act:'wait',hint:'건조될 때까지 기다리세요',key:'WAIT',dur:2400},
+  ]},
+  stone:{name:'석재 유물',col:'#7a7670',col2:'#908b85',steps:[
+    {id:'wash',lbl:'세척',act:'scrub',hint:'솔로 오염을 닦아내세요',key:'DRAG',dur:3500},
+    {id:'scan',lbl:'균열 스캔',act:'scan',hint:'스캐너로 전체를 살펴보세요',key:'DRAG',dur:3000},
+    {id:'fill',lbl:'결손부 충진',act:'fill',hint:'빈 곳을 클릭하여 채우세요',key:'CLICK_CRACK',dur:4000},
+    {id:'harden',lbl:'강화 처리',act:'spray',hint:'강화제를 뿌려주세요',key:'CLICK',dur:2800},
+    {id:'record',lbl:'기록 완료',act:'photo',hint:'사진으로 기록하세요',key:'CLICK',dur:1800},
+  ]},
+  iron:{name:'철제 유물',col:'#4a5568',col2:'#637080',steps:[
+    {id:'derust',lbl:'녹 제거',act:'scrub',hint:'솔로 녹을 긁어내세요',key:'DRAG',dur:4000},
+    {id:'xray',lbl:'X선 촬영',act:'scan',hint:'전체 면적을 스캔하세요',key:'DRAG',dur:3000},
+    {id:'desalt',lbl:'탈염 처리',act:'soak',hint:'꾹 누르고 계세요',key:'HOLD',dur:3800},
+    {id:'coat',lbl:'방청 코팅',act:'brush',hint:'방청제를 꼼꼼히 바르세요',key:'DRAG',dur:3200},
+    {id:'store',lbl:'수장고 보관',act:'place',hint:'유물을 제자리에 놓으세요',key:'DRAG',dur:2400},
+  ]},
+};
+const TOOLS={brush:'🖌️',spray:'💨',scrub:'🪥',fill:'🔧',scan:'🔍',soak:'💧',photo:'📷',place:'📦',wait:'⏳'};
+
+// ── Game state ─────────────────────────────────────────────────
+let gs={};
+const canvas=document.getElementById('gc');const ctx=canvas.getContext('2d');
+
+function selectArt(t){selArt=t;document.querySelectorAll('.art-card').forEach(c=>c.classList.remove('sel'));document.getElementById('ac-'+t).classList.add('sel');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');}
+function goTitle(){if(gs.raf){cancelAnimationFrame(gs.raf);gs.raf=null;}showScreen('title');}
+
+function startGame(){
+  const data=ARTS[selArt];
+  gs={type:selArt,data,stepIdx:0,score:0,combo:0,maxCombo:0,totalAcc:0,stepCount:0,
+    startTime:Date.now(),stepStart:Date.now(),progress:0,done:false,
+    particles:[],cracks:[],dirts:[],rusts:[],brushPts:[],sprays:[],effects:[],
+    mx:0,my:0,down:false,holdMs:0,raf:null,stepScore:0};
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  genArtifact();renderTools();showScreen('game');updHUD();updInst();
+  gs.raf=requestAnimationFrame(loop);
+}
+window.addEventListener('resize',()=>{if(gs.raf){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}});
+
+function genArtifact(){
+  const W=canvas.width,H=canvas.height;
+  const cx=W/2,cy=H/2-30;
+  gs.art={cx,cy,w:200,h:270};
+  // Cracks
+  const cn={wood:4,stone:6,iron:5}[selArt]||4;
+  for(let i=0;i<cn;i++){const a=Math.random()*Math.PI*2,l=25+Math.random()*55;gs.cracks.push({x:cx+(Math.random()-.5)*160,y:cy+(Math.random()-.5)*220,dx:Math.cos(a)*l,dy:Math.sin(a)*l,fixed:false,alpha:1});}
+  // Dirts
+  for(let i=0;i<6;i++) gs.dirts.push({x:cx+(Math.random()-.5)*170,y:cy+(Math.random()-.5)*230,r:18+Math.random()*28,alpha:.75});
+  // Rusts (iron)
+  if(selArt==='iron') for(let i=0;i<7;i++) gs.rusts.push({x:cx+(Math.random()-.5)*160,y:cy+(Math.random()-.5)*220,r:14+Math.random()*22,alpha:.9});
+}
+
+function renderTools(){
+  const bar=document.getElementById('tools-bar');bar.innerHTML='';
+  const step=gs.data.steps[gs.stepIdx];
+  Object.entries(TOOLS).forEach(([k,e])=>{
+    const btn=document.createElement('div');btn.className='tool-btn'+(k===step.act?' act':'');
+    btn.innerHTML=`<span class="tb-em">${e}</span><span class="tb-lbl">${k.toUpperCase()}</span>`;bar.appendChild(btn);
+  });
+}
+function updHUD(){
+  const step=gs.data.steps[gs.stepIdx];
+  document.getElementById('hud-name').textContent=gs.data.name+' · '+step.lbl;
+  document.getElementById('hud-step').textContent=`STEP ${gs.stepIdx+1}/${gs.data.steps.length}`;
+  document.getElementById('hud-score').textContent=gs.score+' PT';
+  document.getElementById('prog-bar').style.width=(gs.progress*100)+'%';
+}
+function updInst(){
+  const step=gs.data.steps[gs.stepIdx];
+  document.getElementById('inst-bubble').innerHTML=`<span class="inst-key">[${step.key}]</span> ${step.hint}`;
+}
+
+// ── Input ──────────────────────────────────────────────────────
+canvas.addEventListener('mousedown',e=>{gs.down=true;const r=canvas.getBoundingClientRect();gs.mx=e.clientX-r.left;gs.my=e.clientY-r.top;handleAct(gs.mx,gs.my,'down');});
+canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();gs.mx=e.clientX-r.left;gs.my=e.clientY-r.top;if(gs.down)handleAct(gs.mx,gs.my,'move');});
+canvas.addEventListener('mouseup',e=>{gs.down=false;handleAct(gs.mx,gs.my,'up');});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0],r=canvas.getBoundingClientRect();gs.down=true;gs.mx=t.clientX-r.left;gs.my=t.clientY-r.top;handleAct(gs.mx,gs.my,'down');},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0],r=canvas.getBoundingClientRect();gs.mx=t.clientX-r.left;gs.my=t.clientY-r.top;handleAct(gs.mx,gs.my,'move');},{passive:false});
+canvas.addEventListener('touchend',e=>{e.preventDefault();gs.down=false;handleAct(gs.mx,gs.my,'up');},{passive:false});
+
+function onArt(x,y){const{cx,cy,w,h}=gs.art;return x>cx-w/2&&x<cx+w/2&&y>cy-h/2&&y<cy+h/2;}
+function handleAct(x,y,type){
+  if(gs.done)return;
+  const step=gs.data.steps[gs.stepIdx];
+  if(step.act==='brush'||step.act==='scrub'){
+    if(type==='move'&&gs.down&&onArt(x,y)){
+      gs.brushPts.push({x,y,t:Date.now()});
+      gs.dirts.forEach(d=>{if(Math.hypot(d.x-x,d.y-y)<d.r+20)d.alpha=Math.max(0,d.alpha-.045);});
+      gs.rusts.forEach(r=>{if(Math.hypot(r.x-x,r.y-y)<r.r+18)r.alpha=Math.max(0,r.alpha-.035);});
+      addProg(.009);spawnDust(x,y);
+    }
+  } else if(step.act==='spray'){
+    if(gs.down&&onArt(x,y)){for(let i=0;i<4;i++)gs.sprays.push({x,y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,r:2+Math.random()*3,a:.8});addProg(.005);}
+  } else if(step.act==='fill'){
+    if(type==='down'){gs.cracks.forEach(c=>{if(Math.hypot(c.x-x,c.y-y)<28&&!c.fixed){c.fixed=true;c.alpha=0;addProg(.22);spawnStars(x,y);addFX(x,y,'+60','#c9a84c');gs.score+=60;updHUD();}});}
+  } else if(step.act==='scan'){
+    if(type==='move'&&gs.down&&onArt(x,y)) addProg(.008);
+  } else if(step.act==='soak'||step.act==='hold'){
+    if(gs.down&&onArt(x,y)){gs.holdMs+=16;addProg(.007);}
+    else gs.holdMs=0;
+  } else if(step.act==='photo'||step.act==='place'){
+    if(type==='down'&&onArt(x,y)){addProg(.55);spawnStars(x,y);}
+  } else if(step.act==='wait'){
+    // handled in loop
+  }
+}
+function addProg(a){
+  gs.progress=Math.min(1,gs.progress+a);
+  document.getElementById('prog-bar').style.width=(gs.progress*100)+'%';
+  if(gs.progress>=1&&!gs.done) advance(1.0);
+}
+function advance(q){
+  if(gs.done)return;gs.done=true;
+  const sc=Math.round(q*200);gs.score+=sc;gs.combo++;gs.maxCombo=Math.max(gs.maxCombo,gs.combo);gs.totalAcc+=q;gs.stepCount++;
+  addFX(gs.art.cx,gs.art.cy-60,q>=.9?'완벽! PERFECT!':q>=.7?'좋아요 GREAT!':'통과 OK','#c9a84c');
+  spawnStars(gs.art.cx,gs.art.cy);playStep();
+  updHUD();
+  setTimeout(()=>{
+    gs.stepIdx++;
+    if(gs.stepIdx>=gs.data.steps.length){showResult();return;}
+    gs.progress=0;gs.done=false;gs.stepStart=Date.now();gs.brushPts=[];gs.sprays=[];
+    renderTools();updHUD();updInst();
+  },1100);
+}
+
+// ── Particles ──────────────────────────────────────────────────
+function spawnDust(x,y){if(Math.random()>.35)return;gs.particles.push({x,y,vx:(Math.random()-.5)*2,vy:-1-Math.random()*2,r:2+Math.random()*3,a:.6,col:'rgba(170,140,90,.8)'});}
+function spawnStars(x,y){for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2,s=2+Math.random()*4;gs.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,r:3+Math.random()*4,a:1,col:'#c9a84c'});}}
+function addFX(x,y,text,col){gs.effects.push({x,y,text,col,t:Date.now()});}
+
+function playStep(){try{const a=new(window.AudioContext||window.webkitAudioContext)();[523,659,784].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.type='sine';o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.09,a.currentTime+i*.08);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+i*.08+.2);o.start(a.currentTime+i*.08);o.stop(a.currentTime+i*.08+.25);});}catch(e){}}
+
+// ── Draw ──────────────────────────────────────────────────────
+function loop(){
+  gs.raf=requestAnimationFrame(loop);
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  drawBG(W,H);drawArtifact();drawOverlays();drawBrush();drawSpray();drawParticles();drawFX();drawProgress();
+  // Wait step
+  const step=gs.data.steps[gs.stepIdx];
+  if(step?.act==='wait'&&!gs.done){gs.progress=Math.min(1,(Date.now()-gs.stepStart)/step.dur);document.getElementById('prog-bar').style.width=(gs.progress*100)+'%';if(gs.progress>=1)advance(.85);}
+}
+function drawBG(W,H){
+  ctx.fillStyle='#0a0704';ctx.fillRect(0,0,W,H);
+  // Lab surface
+  const g=ctx.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'#181008');g.addColorStop(1,'#0c0805');ctx.fillStyle=g;ctx.fillRect(0,H*.55,W,H*.45);
+  ctx.strokeStyle='rgba(201,168,76,.03)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=55){ctx.beginPath();ctx.moveTo(x,H*.55);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=H*.55;y<H;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+function drawArtifact(){
+  const{cx,cy,w,h}=gs.art,d=gs.data;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=36;ctx.shadowOffsetY=18;
+  ctx.fillStyle=d.col;
+  if(selArt==='wood'){ctx.beginPath();ctx.roundRect(cx-w/2,cy-h/2,w,h,8);ctx.fill();ctx.strokeStyle=d.col2+'70';ctx.lineWidth=1.5;for(let i=-h/2;i<h/2;i+=18){ctx.beginPath();ctx.moveTo(cx-w/2+4,cy+i);ctx.bezierCurveTo(cx,cy+i-4,cx+10,cy+i+4,cx+w/2-4,cy+i);ctx.stroke();}}
+  else if(selArt==='stone'){ctx.beginPath();ctx.moveTo(cx-w/2+18,cy-h/2);ctx.lineTo(cx+w/2-8,cy-h/2+12);ctx.lineTo(cx+w/2,cy+h/2-28);ctx.lineTo(cx+w/2-22,cy+h/2);ctx.lineTo(cx-w/2+4,cy+h/2-8);ctx.lineTo(cx-w/2,cy-h/2+18);ctx.closePath();ctx.fill();}
+  else{ctx.beginPath();ctx.moveTo(cx,cy-h/2);ctx.lineTo(cx+w/3,cy-h/4);ctx.lineTo(cx+w/4,cy+h/2);ctx.lineTo(cx-w/4,cy+h/2);ctx.lineTo(cx-w/3,cy-h/4);ctx.closePath();ctx.fill();}
+  ctx.restore();
+  // Dirts
+  gs.dirts.forEach(d=>{if(d.alpha<=0)return;const g=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r);g.addColorStop(0,`rgba(38,28,8,${d.alpha})`);g.addColorStop(1,'rgba(38,28,8,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();});
+  // Rusts
+  gs.rusts.forEach(r=>{if(r.alpha<=0)return;const g=ctx.createRadialGradient(r.x,r.y,0,r.x,r.y,r.r);g.addColorStop(0,`rgba(155,78,18,${r.alpha*.8})`);g.addColorStop(1,'rgba(155,78,18,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();});
+  // Cracks
+  gs.cracks.forEach(c=>{if(c.alpha<=0)return;ctx.strokeStyle=`rgba(0,0,0,${c.alpha*.8})`;ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(c.x+c.dx,c.y+c.dy);ctx.stroke();ctx.strokeStyle=`rgba(255,255,255,${c.alpha*.15})`;ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(c.x+1,c.y+1);ctx.lineTo(c.x+c.dx+1,c.y+c.dy+1);ctx.stroke();});
+  // Glow when complete
+  if(gs.progress>=1){ctx.save();ctx.globalAlpha=.28+.1*Math.sin(Date.now()/200);ctx.shadowColor='#c9a84c';ctx.shadowBlur=40;ctx.strokeStyle='#c9a84c';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(gs.art.cx-w/2-5,gs.art.cy-h/2-5,w+10,h+10,12);ctx.stroke();ctx.restore();}
+}
+function drawOverlays(){
+  const step=gs.data.steps[gs.stepIdx];
+  if(step?.act==='scan'){const sy=gs.art.cy-gs.art.h/2+(Date.now()%2000)/2000*gs.art.h;ctx.save();ctx.globalAlpha=.45;const g=ctx.createLinearGradient(0,sy-12,0,sy+12);g.addColorStop(0,'rgba(0,255,100,0)');g.addColorStop(.5,'rgba(0,255,100,.55)');g.addColorStop(1,'rgba(0,255,100,0)');ctx.fillStyle=g;ctx.fillRect(gs.art.cx-gs.art.w/2,sy-12,gs.art.w,24);ctx.restore();}
+  if(step?.act==='fill'){gs.cracks.forEach(c=>{if(c.fixed)return;ctx.save();ctx.globalAlpha=.28+.2*Math.sin(Date.now()/300);ctx.strokeStyle='#ffcc00';ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(c.x+c.dx,c.y+c.dy);ctx.stroke();ctx.restore();});}
+}
+function drawBrush(){
+  const now=Date.now();gs.brushPts=gs.brushPts.filter(p=>now-p.t<600);
+  if(gs.brushPts.length<2)return;
+  ctx.save();ctx.globalAlpha=.45;ctx.strokeStyle='rgba(201,168,76,.7)';ctx.lineWidth=14;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(gs.brushPts[0].x,gs.brushPts[0].y);gs.brushPts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();ctx.restore();
+}
+function drawSpray(){
+  gs.sprays.forEach(s=>{s.a-=.04;ctx.save();ctx.globalAlpha=s.a;ctx.fillStyle='rgba(100,180,255,.85)';ctx.beginPath();ctx.arc(s.x+=s.vx,s.y+=s.vy,s.r,0,Math.PI*2);ctx.fill();ctx.restore();});
+  gs.sprays=gs.sprays.filter(s=>s.a>0);
+}
+function drawParticles(){
+  gs.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.a-=.025;ctx.save();ctx.globalAlpha=p.a;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();});
+  gs.particles=gs.particles.filter(p=>p.a>0);
+}
+function drawFX(){
+  const now=Date.now();
+  gs.effects.forEach(e=>{const age=(now-e.t)/650;if(age>1)return;ctx.save();ctx.globalAlpha=1-age;ctx.fillStyle=e.col||'#c9a84c';ctx.font=`bold ${16+age*8}px 'Noto Serif KR',serif`;ctx.textAlign='center';ctx.fillText(e.text,e.x,e.y-age*42);ctx.restore();});
+  gs.effects=gs.effects.filter(e=>Date.now()-e.t<660);
+}
+function drawProgress(){
+  const{cx,cy,w}=gs.art,r=w*.62;
+  ctx.save();ctx.strokeStyle='rgba(201,168,76,.12)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+  if(gs.progress>0){ctx.strokeStyle='#c9a84c';ctx.shadowColor='#c9a84c';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+gs.progress*Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
+
+// ── Result ─────────────────────────────────────────────────────
+function showResult(){
+  cancelAnimationFrame(gs.raf);gs.raf=null;
+  const acc=gs.stepCount?Math.round(gs.totalAcc/gs.stepCount*100):0;
+  const elapsed=((Date.now()-gs.startTime)/1000).toFixed(1);
+  const grade=acc>=95?'S':acc>=82?'A':acc>=68?'B':acc>=52?'C':'D';
+  const titles={S:'완벽한 보존처리!',A:'훌륭한 작업이에요!',B:'좋은 처리였습니다',C:'조금 더 연습하세요',D:'다시 도전해보세요'};
+  document.getElementById('rg').textContent=grade;document.getElementById('rt').textContent=titles[grade];
+  document.getElementById('rv-score').textContent=gs.score;document.getElementById('rv-acc').textContent=acc+'%';
+  document.getElementById('rv-time').textContent=elapsed+'s';document.getElementById('rv-combo').textContent=gs.maxCombo;
+  showScreen('result');
+}
+</script>
+</body>
+</html>
