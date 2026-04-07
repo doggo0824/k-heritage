@@ -130,7 +130,7 @@ function drawManJa(c,x,y,r,pal){
   c.beginPath();c.moveTo(-s,0);c.lineTo(s,0);c.stroke();
   c.beginPath();c.moveTo(0,-s);c.lineTo(0,s);c.stroke();
   c.lineWidth=r*.16;
-  [[s,-s*.4,'y'],[−s,s*.4,'y'],[s*.4,s,'x'],[-s*.4,-s,'x']].forEach(([ox,oy,ax])=>{
+  [[s,-s*.4,'y'],[-s,s*.4,'y'],[s*.4,s,'x'],[-s*.4,-s,'x']].forEach(([ox,oy,ax])=>{
     c.beginPath();c.moveTo(ox,oy);
     ax==='x'?c.lineTo(ox+Math.sign(ox)*s*.4,oy):c.lineTo(ox,oy+Math.sign(oy)*s*.4);
     c.stroke();
