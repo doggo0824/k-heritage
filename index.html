@@ -92,10 +92,12 @@
     max-width: 700px; width: 90%;
     box-shadow: 0 0 40px rgba(0,255,65,0.3), inset 0 0 60px rgba(0,255,65,0.05);
   }
-  .crt-frame::before, .crt-frame::after {
-    content: '';
-    position: absolute;
-    border: 1px solid rgba(0,255,65,0.3);
+.crt-frame::before, .crt-frame::after {
+  content: '';
+  position: absolute;
+  border: 1px solid rgba(0,255,65,0.3);
+  pointer-events: none; /* 클릭 이벤트를 통과시키도록 이 줄을 추가합니다 */
+}
   }
   .crt-frame::before { inset: 4px; }
   .crt-frame::after { inset: 8px; }
@@ -613,7 +615,7 @@
   <div class="crt-frame">
     <div class="crt-title">// 국가유산 디지털 체험관 //</div>
     <div class="crt-subtitle">NATIONAL HERITAGE DIGITAL EXPERIENCE CENTER v1.0</div>
-    <div class="crt-log" id="crt-log"></div>
+    <div class="crt-log" id="crt-log"></div>https://github.com/doggo0824/k-heritage/blob/main/index.html#L836C42
     <div class="crt-progress-wrap"><div id="crt-progress"></div></div>
     <div class="crt-pct"><span id="crt-pct-num">0</span>%</div>
     <button id="enter-btn" onclick="enterSite()">[ ENTER THE EXPERIENCE ]</button>
