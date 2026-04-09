@@ -1,209 +1,195 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>전통문양 인생네컷</title>
+<html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05 전통문양 인생네컷 | 국가유산</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@300;400&display=swap');
-:root{--gold:#c9a84c;--ink:#0f0c07;--paper:#f5efe0}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--ink);color:var(--paper);font-family:'Noto Sans KR',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-#main{display:flex;flex:1;overflow:hidden;min-height:0}
-#cam-panel{flex:1;position:relative;background:#000;min-width:0}
-#cam-vid{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-#cam-ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:130px;font-weight:900;color:#fff;text-shadow:0 0 50px rgba(201,168,76,1),0 0 20px #fff;pointer-events:none;opacity:0;transition:opacity .12s}
-#sts{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:12px;color:rgba(201,168,76,.9);background:rgba(0,0,0,.8);padding:6px 20px;letter-spacing:.1em;display:none;white-space:nowrap}
-#right{width:268px;flex-shrink:0;background:rgba(3,2,0,.97);border-left:1px solid rgba(201,168,76,.16);display:flex;flex-direction:column;padding:12px 10px;gap:8px;overflow-y:auto}
-.rt{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--gold);letter-spacing:.15em;text-align:center;flex-shrink:0}
-#strip{display:flex;flex-direction:column;gap:3px;align-items:center;flex-shrink:0}
-.slot{width:220px;height:138px;background:#111;border:1px solid rgba(201,168,76,.2);position:relative;overflow:hidden;flex-shrink:0}
-.sn{position:absolute;top:3px;left:5px;font-size:9px;color:rgba(201,168,76,.5);font-family:'Courier New',monospace;z-index:2}
-.fl{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:3;transition:opacity .08s}
-.sl{font-size:9px;color:rgba(245,239,224,.28);letter-spacing:.18em;font-family:'Courier New',monospace}
-.btn{background:none;border:1px solid rgba(201,168,76,.35);color:var(--gold);padding:7px;font-size:11px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:.08em;transition:all .2s;width:100%;text-align:center}
-.btn:hover{background:rgba(201,168,76,.12)}
-.btn.hi{border-color:var(--gold);background:rgba(201,168,76,.1)}
-.btn.hi:hover{background:rgba(201,168,76,.2)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.tb{padding:6px 4px;border:1px solid rgba(201,168,76,.18);background:rgba(6,4,0,.8);cursor:pointer;font-size:10px;color:rgba(245,239,224,.5);font-family:'Courier New',monospace;transition:all .2s;text-align:center}
-.tb.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.09)}
-.tb:hover{border-color:rgba(201,168,76,.5)}
-.fr{display:flex;gap:3px;flex-wrap:wrap}
-.fb{padding:4px 8px;border:1px solid rgba(201,168,76,.16);background:none;color:rgba(245,239,224,.42);font-size:9px;cursor:pointer;font-family:'Courier New',monospace;transition:all .2s}
-.fb.on{border-color:var(--gold);color:var(--gold)}
-.ulbl{display:block;padding:7px;border:1px dashed rgba(201,168,76,.25);color:rgba(245,239,224,.38);font-size:10px;cursor:pointer;font-family:'Courier New',monospace;text-align:center;transition:all .2s}
-.ulbl:hover{border-color:var(--gold);color:var(--gold)}
-</style>
-</head>
-<body>
-<div id="main">
- <div id="cam-panel">
-  <video id="cam-vid" autoplay muted playsinline></video>
-  <canvas id="cam-ov"></canvas>
-  <div id="cd"></div>
-  <div id="sts"></div>
- </div>
- <div id="right">
-  <div class="rt">인생네컷 · 四格</div>
-  <div id="strip">
-   <div class="slot" id="s0"><span class="sn">01</span><div class="fl" id="f0"></div></div>
-   <div class="slot" id="s1"><span class="sn">02</span><div class="fl" id="f1"></div></div>
-   <div class="slot" id="s2"><span class="sn">03</span><div class="fl" id="f2"></div></div>
-   <div class="slot" id="s3"><span class="sn">04</span><div class="fl" id="f3"></div></div>
-  </div>
-  <div class="sl">// 테마 //</div>
-  <div class="g2">
-   <button class="tb on" id="t0" onclick="setTheme('lotus',0)">🌸 연화</button>
-   <button class="tb" id="t1" onclick="setTheme('cloud',1)">☁ 운문</button>
-   <button class="tb" id="t2" onclick="setTheme('hex',2)">⬡ 귀갑</button>
-   <button class="tb" id="t3" onclick="setTheme('dragon',3)">🐉 용문</button>
-  </div>
-  <div class="sl">// 필터 //</div>
-  <div class="fr">
-   <button class="fb on" id="fn" onclick="setFx('none','fn')">없음</button>
-   <button class="fb" id="fs" onclick="setFx('sepia','fs')">세피아</button>
-   <button class="fb" id="fv" onclick="setFx('vintage','fv')">빈티지</button>
-   <button class="fb" id="fc" onclick="setFx('cool','fc')">청색</button>
-  </div>
-  <div class="sl">// 문양 업로드 //</div>
-  <label class="ulbl">📁 문양 이미지<input type="file" accept="image/*" style="display:none" onchange="loadPat(event)"></label>
-  <button class="btn hi" onclick="shootAll()">📸 4컷 촬영</button>
-  <button class="btn" onclick="shootOne()">📷 한 장 촬영</button>
-  <button class="btn" onclick="dlStrip()">⬇ 스트립 저장</button>
-  <button class="btn" onclick="resetAll()">↺ 초기화</button>
- </div>
-</div>
-<script>
-const vid=document.getElementById('cam-vid');
-const ov=document.getElementById('cam-ov');const ox=ov.getContext('2d');
-let shots=[null,null,null,null],theme='lotus',fx='none',patImg=null,busy=false,phase=0;
+body{background:#050505;color:#e8d5a3;font-family:"Courier New",monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding-top:56px}
+.bk{position:fixed;top:16px;left:16px;color:#a08040;text-decoration:none;font:13px "Courier New";letter-spacing:2px;border:1px solid #a08040;padding:7px 14px;z-index:99;transition:.3s}
+.bk:hover{background:#a08040;color:#050505}
+.tt{position:fixed;top:18px;left:50%;transform:translateX(-50%);font:13px "Courier New";letter-spacing:3px;color:#c8a84b;z-index:99;white-space:nowrap}
+#cam-wrap{position:relative;width:min(480px,95vw);height:min(360px,71vw);background:#0a0a0a;border:1px solid rgba(200,168,75,.3)}
+#cam-wrap video,#cam-wrap #overlay{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+#overlay{pointer-events:none}
+#no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#5a4a2a;font:12px "Courier New";letter-spacing:2px;gap:8px}
+.pat-row{display:flex;gap:8px;margin:12px 0}
+.pp{padding:6px 14px;border:1px solid #a08040;color:#a08040;background:transparent;font:12px "Courier New";cursor:pointer;transition:.3s;letter-spacing:1px}
+.pp:hover,.pp.on{background:#a08040;color:#050505}
+.btn-row{display:flex;gap:10px;margin-bottom:16px}
+.shoot-btn{padding:10px 28px;border:1px solid #c8a84b;color:#c8a84b;background:transparent;font:14px "Courier New";letter-spacing:3px;cursor:pointer;transition:.3s}
+.shoot-btn:hover{background:#c8a84b;color:#050505}
+.shoot-btn:disabled{opacity:.4;cursor:default;pointer-events:none}
+.dl-btn{padding:10px 22px;border:1px solid #2D7A3A;color:#2D7A3A;background:transparent;font:12px "Courier New";letter-spacing:2px;cursor:pointer;transition:.3s;display:none}
+.dl-btn:hover{background:#2D7A3A;color:#050505}
+#countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:500;pointer-events:none}
+#count-num{font-size:120px;color:#c8a84b;font-family:"Courier New";text-shadow:0 0 40px #c8a84b;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(1.4)}to{transform:scale(1)}}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:600;transition:opacity .08s}
+#strip-wrap{margin-bottom:24px;display:none}
+#strip-wrap h3{font:12px "Courier New";letter-spacing:3px;color:#a08040;margin-bottom:10px;text-align:center}
+#strip{border:1px solid rgba(200,168,75,.3)}
+</style></head><body>
+<a href="../index.html" class="bk">← BACK</a>
+<div class="tt">05 · 전통문양 인생네컷</div>
 
-function resOv(){ov.width=ov.offsetWidth;ov.height=ov.offsetHeight;}
-window.addEventListener('resize',resOv);
+<div id="cam-wrap">
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="overlay"></canvas>
+  <div id="no-cam"><span style="font-size:28px">📷</span><span>카메라를 찾는 중...</span><span id="cam-status"></span></div>
+</div>
+
+<div class="pat-row">
+  <span style="color:#5a4a2a;line-height:34px;font-size:11px">문양 ›</span>
+  <button class="pp on" data-pt="0">창살</button>
+  <button class="pp" data-pt="1">연화</button>
+  <button class="pp" data-pt="2">단청</button>
+  <button class="pp" data-pt="3">태극</button>
+</div>
+
+<div class="btn-row">
+  <button class="shoot-btn" id="shoot-btn">📸 촬영 시작</button>
+  <button class="dl-btn" id="dl-btn">⬇ 다운로드</button>
+</div>
+
+<div id="strip-wrap">
+  <h3>· 인생네컷 결과 ·</h3>
+  <canvas id="strip"></canvas>
+</div>
+
+<div id="countdown"><div id="count-num">3</div></div>
+<div id="flash"></div>
+
+<script>
+const vid=document.getElementById("vid");
+const ov=document.getElementById("overlay");
+const ovX=ov.getContext("2d");
+const shootBtn=document.getElementById("shoot-btn");
+const dlBtn=document.getElementById("dl-btn");
+const stripWrap=document.getElementById("strip-wrap");
+const strip=document.getElementById("strip");
+const stripX=strip.getContext("2d");
+const noCam=document.getElementById("no-cam");
+const cdEl=document.getElementById("countdown");
+const cnEl=document.getElementById("count-num");
+const flashEl=document.getElementById("flash");
+
+let curPat=0,frames=[],hasCamera=false,animId=null;
+
+document.querySelectorAll(".pp").forEach(b=>{b.onclick=()=>{curPat=+b.dataset.pt;document.querySelectorAll(".pp").forEach(x=>x.classList.remove("on"));b.classList.add("on");}});
+
+// Pattern overlay functions
+function drawChangsal(ctx,w,h){
+  ctx.strokeStyle="rgba(200,168,75,.55)";ctx.lineWidth=1.5;
+  const sp=w/10;
+  for(let x=-h;x<w+h;x+=sp){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+h,h);ctx.stroke();}
+  for(let x=-h;x<w+h;x+=sp){ctx.beginPath();ctx.moveTo(x+h,0);ctx.lineTo(x,h);ctx.stroke();}
+  ctx.strokeStyle="rgba(200,168,75,.7)";ctx.lineWidth=3;ctx.strokeRect(10,10,w-20,h-20);
+  ctx.strokeRect(18,18,w-36,h-36);
+}
+function drawLotus(ctx,w,h){
+  ctx.strokeStyle="rgba(196,55,42,.7)";ctx.lineWidth=3;ctx.strokeRect(12,12,w-24,h-24);
+  [[30,30],[w-30,30],[w-30,h-30],[30,h-30]].forEach(([lx,ly])=>{
+    ctx.save();ctx.translate(lx,ly);
+    for(let i=0;i<8;i++){ctx.rotate(Math.PI/4);ctx.beginPath();ctx.ellipse(0,-16,4,14,0,0,Math.PI*2);ctx.fillStyle="rgba(196,55,42,.5)";ctx.fill();}
+    ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fillStyle="#D4A017";ctx.fill();
+    ctx.restore();
+  });
+}
+function drawDancheong(ctx,w,h){
+  const cols=["rgba(43,75,140,.5)","rgba(196,55,42,.5)","rgba(212,160,23,.5)","rgba(45,122,58,.5)"];
+  const bh=h*.12;
+  [0,1,2,3].forEach(i=>{ctx.fillStyle=cols[i];ctx.fillRect(0,i*(bh+2),w,bh);ctx.fillRect(0,h-i*(bh+2)-bh,w,bh);});
+  ctx.strokeStyle="rgba(200,168,75,.6)";ctx.lineWidth=2;ctx.strokeRect(h*.14,h*.14,w-h*.28,h*.72);
+}
+function drawTaegeuk(ctx,w,h){
+  const cx=w/2,cy=h/2,s=Math.min(w,h)*.3;
+  ctx.save();ctx.translate(cx,cy);
+  ctx.beginPath();ctx.arc(0,-s/2,s/2,0,Math.PI);ctx.arc(0,s/2,s/2,Math.PI,0);ctx.fillStyle="rgba(196,55,42,.65)";ctx.fill();
+  ctx.beginPath();ctx.arc(0,-s/2,s/2,Math.PI,0);ctx.arc(0,s/2,s/2,0,Math.PI);ctx.fillStyle="rgba(43,75,140,.65)";ctx.fill();
+  ctx.beginPath();ctx.arc(0,-s/2,s/4,0,Math.PI*2);ctx.fillStyle="rgba(43,75,140,.8)";ctx.fill();
+  ctx.beginPath();ctx.arc(0,s/2,s/4,0,Math.PI*2);ctx.fillStyle="rgba(196,55,42,.8)";ctx.fill();
+  ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.strokeStyle="rgba(200,168,75,.5)";ctx.lineWidth=2;ctx.stroke();
+  ctx.restore();
+  ctx.strokeStyle="rgba(200,168,75,.5)";ctx.lineWidth=2;ctx.strokeRect(12,12,w-24,h-24);
+}
+const PAT_FNS=[drawChangsal,drawLotus,drawDancheong,drawTaegeuk];
+
+function drawOverlay(){
+  if(!ov.width)return;
+  ovX.clearRect(0,0,ov.width,ov.height);
+  PAT_FNS[curPat](ovX,ov.width,ov.height);
+}
 
 async function initCam(){
+  document.getElementById("cam-status").textContent="권한 요청 중...";
   try{
-    const s=await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720,facingMode:'user'},audio:false});
-    vid.srcObject=s;await vid.play();resOv();loopOv();
-  }catch(e){showSts('웹캠 없음 - 데모 모드');}
-}
-
-// ── Themes ─────────────────────────────────────────────────
-const THEMES={
-  lotus:{draw(c,W,H){
-    const t=20;c.fillStyle='rgba(90,18,5,.88)';c.fillRect(0,0,W,t);c.fillRect(0,H-t,W,t);c.fillRect(0,0,t,H);c.fillRect(W-t,0,t,H);
-    c.strokeStyle='rgba(201,168,76,.8)';c.lineWidth=1.5;c.strokeRect(t+3,t+3,W-t*2-6,H-t*2-6);
-    [[t/2,t/2],[W-t/2,t/2],[t/2,H-t/2],[W-t/2,H-t/2]].forEach(([cx,cy])=>{
-      for(let i=0;i<8;i++){const a=i/8*Math.PI*2;c.fillStyle='rgba(201,168,76,.6)';c.beginPath();c.ellipse(cx+Math.cos(a)*8,cy+Math.sin(a)*8,6,3,a,0,Math.PI*2);c.fill();}
-      c.fillStyle='#c9a84c';c.beginPath();c.arc(cx,cy,3,0,Math.PI*2);c.fill();
-    });
-    c.fillStyle='rgba(201,168,76,.88)';c.font=`bold 13px 'Noto Serif KR',serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('인생네컷 · 國家遺産',W/2,t/2);
-  }},
-  cloud:{draw(c,W,H){
-    const t=20;c.fillStyle='rgba(18,5,38,.9)';c.fillRect(0,0,W,t);c.fillRect(0,H-t,W,t);c.fillRect(0,0,t,H);c.fillRect(W-t,0,t,H);
-    c.strokeStyle='rgba(155,95,215,.7)';c.lineWidth=1.5;c.strokeRect(t+3,t+3,W-t*2-6,H-t*2-6);
-    const dc=(x,y,r)=>{c.fillStyle='rgba(185,135,248,.42)';[[0,0],[-.5,0],[.5,0]].forEach(([dx])=>{c.beginPath();c.arc(x+dx*r,y,r*(dx?0.65:1),0,Math.PI*2);c.fill();});};
-    for(let i=0;i<8;i++){dc(i*(W/7)+t,t/2,5);dc(i*(W/7)+t,H-t/2,5);}
-    c.fillStyle='rgba(185,135,248,.9)';c.font=`bold 12px 'Noto Serif KR',serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('雲紋 · 구름',W/2,t/2);
-  }},
-  hex:{draw(c,W,H){
-    const t=20;c.fillStyle='rgba(0,22,14,.9)';c.fillRect(0,0,W,t);c.fillRect(0,H-t,W,t);c.fillRect(0,0,t,H);c.fillRect(W-t,0,t,H);
-    c.strokeStyle='rgba(70,195,130,.7)';c.lineWidth=1.5;c.strokeRect(t+3,t+3,W-t*2-6,H-t*2-6);
-    const dh=(cx,cy,r)=>{c.strokeStyle='rgba(70,195,130,.5)';c.lineWidth=1;c.beginPath();for(let i=0;i<6;i++){const a=i/6*Math.PI*2;i?c.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):c.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}c.closePath();c.stroke();};
-    for(let i=0;i<9;i++){dh(i*(W/8)+2,t/2,6);dh(i*(W/8)+2,H-t/2,6);}
-    c.fillStyle='rgba(70,195,130,.9)';c.font=`bold 12px 'Noto Serif KR',serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('龜甲 · 귀갑',W/2,t/2);
-  }},
-  dragon:{draw(c,W,H){
-    const t=22;c.fillStyle='rgba(28,3,3,.92)';c.fillRect(0,0,W,t);c.fillRect(0,H-t,W,t);c.fillRect(0,0,t,H);c.fillRect(W-t,0,t,H);
-    c.strokeStyle='rgba(215,65,45,.78)';c.lineWidth=2;c.strokeRect(t+3,t+3,W-t*2-6,H-t*2-6);
-    for(let i=0;i<Math.ceil(W/18);i++){c.strokeStyle='rgba(215,65,45,.38)';c.lineWidth=1;c.beginPath();c.arc(i*18,t/2,t*.42,Math.PI,0);c.stroke();c.beginPath();c.arc(i*18,H-t/2,t*.42,Math.PI,0);c.stroke();}
-    c.fillStyle='rgba(215,65,45,.92)';c.font=`bold 13px 'Noto Serif KR',serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('龍紋 · 용문',W/2,t/2);
-  }},
-};
-
-function setTheme(t,idx){theme=t;document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('on',i===idx));}
-function setFx(f,bid){fx=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));document.getElementById(bid).classList.add('on');}
-function loadPat(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>patImg=i;i.src=ev.target.result;};r.readAsDataURL(f);}
-
-function loopOv(){
-  requestAnimationFrame(loopOv);phase+=.018;
-  const W=ov.width,H=ov.height;ox.clearRect(0,0,W,H);
-  ox.save();ox.globalAlpha=.48+Math.sin(phase)*.07;THEMES[theme].draw(ox,W,H);ox.restore();
-  // grid guides
-  ox.strokeStyle='rgba(255,255,255,.06)';ox.lineWidth=1;
-  [W/3,W*2/3].forEach(x=>{ox.beginPath();ox.moveTo(x,22);ox.lineTo(x,H-22);ox.stroke();});
-  [H/3,H*2/3].forEach(y=>{ox.beginPath();ox.moveTo(22,y);ox.lineTo(W-22,y);ox.stroke();});
-}
-
-function showSts(m,show=true){const s=document.getElementById('sts');s.textContent=m;s.style.display=show?'block':'none';}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-function beep(f=440){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.type='sine';o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.1,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.14);o.start();o.stop(a.currentTime+.17);}catch(e){}}
-
-async function doCount(idx){
-  const cd=document.getElementById('cd');
-  for(let i=3;i>=1;i--){cd.textContent=i;cd.style.opacity='1';beep(i===1?920:440);await sleep(760);cd.style.opacity='0';await sleep(160);}
-  cd.textContent='📸';cd.style.opacity='1';await sleep(180);cd.style.opacity='0';
-  snap(idx);
-}
-
-function applyFx(cx,W,H){
-  if(fx==='none')return;
-  const id=cx.getImageData(0,0,W,H),d=id.data;
-  for(let i=0;i<d.length;i+=4){
-    if(fx==='sepia'){const r=d[i],g=d[i+1],b=d[i+2];d[i]=Math.min(255,r*.393+g*.769+b*.189);d[i+1]=Math.min(255,r*.349+g*.686+b*.168);d[i+2]=Math.min(255,r*.272+g*.534+b*.131);}
-    else if(fx==='vintage'){d[i]=Math.min(255,d[i]*1.1+12);d[i+1]=Math.floor(d[i+1]*.88);d[i+2]=Math.min(255,d[i+2]*.78+18);}
-    else if(fx==='cool'){d[i]=Math.floor(d[i]*.82);d[i+1]=Math.floor(d[i+1]*.95);d[i+2]=Math.min(255,d[i+2]*1.22);}
+    const s=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:"user"}});
+    vid.srcObject=s;
+    vid.onloadedmetadata=()=>{
+      vid.play();
+      hasCamera=true;
+      noCam.style.display="none";
+      const wrap=document.getElementById("cam-wrap");
+      ov.width=wrap.offsetWidth;ov.height=wrap.offsetHeight;
+      (function loop(){animId=requestAnimationFrame(loop);drawOverlay();})();
+    };
+  }catch(e){
+    document.getElementById("cam-status").textContent="카메라 없음 — 데모 모드";
+    hasCamera=false;
+    const wrap=document.getElementById("cam-wrap");
+    ov.width=wrap.offsetWidth;ov.height=wrap.offsetHeight;
+    drawOverlay();
   }
-  cx.putImageData(id,0,0);
 }
 
-function snap(idx){
-  const fl=document.getElementById('f'+idx);fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',100);beep(1200);
-  const c=document.createElement('canvas');c.width=440;c.height=276;const cx=c.getContext('2d');
-  if(vid.readyState>=2){cx.save();cx.translate(440,0);cx.scale(-1,1);cx.drawImage(vid,0,0,440,276);cx.restore();}
-  else{cx.fillStyle='#1a1209';cx.fillRect(0,0,440,276);cx.fillStyle='#c9a84c';cx.font='bold 18px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('국가유산 체험관',220,138);}
-  applyFx(cx,440,276);
-  if(patImg){cx.save();cx.globalAlpha=.22;cx.drawImage(patImg,0,0,440,276);cx.restore();}
-  THEMES[theme].draw(cx,440,276);
-  shots[idx]=c;
-  const slot=document.getElementById('s'+idx);
-  slot.innerHTML=`<span class="sn">0${idx+1}</span><div class="fl" id="f${idx}"></div>`;
-  const sc=document.createElement('canvas');
-  sc.style.cssText='position:absolute;inset:0;width:100%;height:100%';
-  sc.width=slot.offsetWidth*2;sc.height=slot.offsetHeight*2;
-  sc.getContext('2d').drawImage(c,0,0,sc.width,sc.height);
-  slot.appendChild(sc);
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function countdown(n){
+  cdEl.style.display="flex";
+  for(let i=n;i>0;i--){cnEl.textContent=i;cnEl.style.animation="none";cnEl.offsetHeight;cnEl.style.animation="pop .3s ease";await sleep(900);}
+  cdEl.style.display="none";
+}
+function doFlash(){flashEl.style.opacity=".9";setTimeout(()=>flashEl.style.opacity="0",150);}
+
+function captureFrame(){
+  const fw=ov.width,fh=ov.height;
+  const fc=document.createElement("canvas");fc.width=fw;fc.height=fh;
+  const fc2=fc.getContext("2d");
+  if(hasCamera) fc2.drawImage(vid,0,0,fw,fh);
+  else{fc2.fillStyle="#111";fc2.fillRect(0,0,fw,fh);fc2.fillStyle="#2a2a2a";fc2.font="24px Courier New";fc2.textAlign="center";fc2.fillText("DEMO",fw/2,fh/2);}
+  PAT_FNS[curPat](fc2,fw,fh);
+  fc2.fillStyle="rgba(200,168,75,.3)";fc2.fillRect(0,0,fw,24);
+  fc2.fillStyle="#c8a84b";fc2.font="10px Courier New";fc2.textAlign="left";fc2.fillText("· 국가유산 디지털 체험관 ·",8,16);
+  return fc;
 }
 
-async function shootAll(){
-  if(busy)return;busy=true;shots=[null,null,null,null];
-  for(let i=0;i<4;i++){showSts(`촬영 ${i+1}/4 준비...`);await doCount(i);if(i<3)await sleep(750);}
-  showSts('✨ 촬영 완료!');setTimeout(()=>showSts('',false),2200);busy=false;
+async function shoot(){
+  shootBtn.disabled=true;frames=[];stripWrap.style.display="none";dlBtn.style.display="none";
+  for(let i=0;i<4;i++){
+    await countdown(3);doFlash();
+    frames.push(captureFrame());
+    if(i<3)await sleep(600);
+  }
+  buildStrip();
+  shootBtn.disabled=false;
 }
-function shootOne(){
-  if(busy)return;let i=shots.findIndex(s=>s===null);if(i<0){resetAll();i=0;}
-  busy=true;showSts(`${i+1}번째 촬영 중...`);doCount(i).then(()=>{showSts('',false);busy=false;});
+
+function buildStrip(){
+  const fw=ov.width,fh=ov.height;
+  const pad=8,gap=6,labelH=32;
+  strip.width=fw*4+gap*3+pad*2;strip.height=fh+pad*2+labelH;
+  stripX.fillStyle="#111";stripX.fillRect(0,0,strip.width,strip.height);
+  // film holes
+  stripX.fillStyle="#222";
+  for(let i=0;i<30;i++){stripX.beginPath();stripX.arc(i*(strip.width/30)+8,6,4,0,Math.PI*2);stripX.fill();stripX.beginPath();stripX.arc(i*(strip.width/30)+8,strip.height-6,4,0,Math.PI*2);stripX.fill();}
+  frames.forEach((f,i)=>{const x=pad+i*(fw+gap);stripX.drawImage(f,x,labelH/2);});
+  // label
+  stripX.fillStyle="#c8a84b";stripX.font="bold 11px Courier New";stripX.textAlign="center";
+  stripX.fillText("국가유산 디지털 체험관 · NATIONAL HERITAGE · "+new Date().toLocaleDateString("ko-KR"),strip.width/2,strip.height-8);
+  stripWrap.style.display="block";dlBtn.style.display="inline-block";
 }
-function resetAll(){
-  shots=[null,null,null,null];
-  for(let i=0;i<4;i++){const s=document.getElementById('s'+i);s.innerHTML=`<span class="sn">0${i+1}</span><div class="fl" id="f${i}"></div>`;}
-}
-function dlStrip(){
-  const c=document.createElement('canvas');c.width=460;c.height=1240;const cx=c.getContext('2d');
-  cx.fillStyle='#0a0705';cx.fillRect(0,0,460,1240);
-  cx.fillStyle='#c9a84c';cx.font=`bold 20px 'Noto Serif KR',serif`;cx.textAlign='center';cx.fillText('國家遺産 인생네컷',230,32);
-  cx.fillStyle='rgba(201,168,76,.45)';cx.font='11px Courier New';cx.fillText(new Date().toLocaleDateString('ko-KR'),230,54);
-  shots.forEach((sh,i)=>{
-    const y=68+i*292;cx.fillStyle='#111';cx.fillRect(10,y,440,282);
-    if(sh)cx.drawImage(sh,10,y,440,282);
-    else{cx.fillStyle='rgba(201,168,76,.1)';cx.font='13px Courier New';cx.textAlign='center';cx.fillText('미촬영',230,y+141);}
-  });
-  cx.fillStyle='rgba(201,168,76,.4)';cx.font='10px Courier New';cx.textAlign='center';cx.fillText('국가유산 디지털 체험관',230,1228);
-  const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='heritage-4cut.png';a.click();
-}
+
+dlBtn.onclick=()=>{const a=document.createElement("a");a.href=strip.toDataURL("image/png");a.download="heritage-photobooth.png";a.click();};
+shootBtn.onclick=shoot;
 initCam();
-</script>
-</body>
-</html>
+window.addEventListener("resize",()=>{const w=document.getElementById("cam-wrap");if(w){ov.width=w.offsetWidth;ov.height=w.offsetHeight;}});
+</script></body></html>

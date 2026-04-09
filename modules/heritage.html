@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 인터랙티브 국가유산 | 국가유산</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050505;color:#e8d5a3;font-family:"Courier New",monospace;min-height:100vh;overflow-x:hidden}
+.bk{position:fixed;top:16px;left:16px;color:#a08040;text-decoration:none;font:13px "Courier New";letter-spacing:2px;border:1px solid #a08040;padding:7px 14px;z-index:99;transition:.3s}
+.bk:hover{background:#a08040;color:#050505}
+.tt{position:fixed;top:18px;left:50%;transform:translateX(-50%);font:13px "Courier New";letter-spacing:4px;color:#c8a84b;z-index:99;white-space:nowrap}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;padding:60px 1px 1px;min-height:100vh}
+@media(max-width:700px){#grid{grid-template-columns:repeat(2,1fr)}}
+.card{background:rgba(255,255,255,.02);border:1px solid rgba(200,168,75,.2);padding:0;cursor:pointer;transition:.3s;display:flex;flex-direction:column;min-height:200px;position:relative;overflow:hidden}
+.card:hover{border-color:#c8a84b;background:rgba(200,168,75,.06)}
+.card canvas{width:100%;display:block}
+.card-body{padding:14px}
+.card-num{font-size:11px;color:#5a4a2a;letter-spacing:2px;margin-bottom:4px}
+.card-name{font-size:15px;letter-spacing:2px;color:#e8d5a3;margin-bottom:2px}
+.card-eng{font-size:10px;color:#a08040;letter-spacing:1px}
+/* Detail Panel */
+#detail{position:fixed;inset:0;background:#050505;z-index:200;display:none;flex-direction:column;overflow-y:auto}
+#detail.on{display:flex}
+.d-header{padding:16px 20px;border-bottom:1px solid rgba(200,168,75,.2);display:flex;align-items:center;gap:16px;flex-shrink:0}
+.d-back{color:#a08040;cursor:pointer;font:13px "Courier New";letter-spacing:2px;border:1px solid #a08040;padding:6px 14px;transition:.3s;background:transparent}
+.d-back:hover{background:#a08040;color:#050505}
+.d-title{font-size:clamp(16px,3vw,24px);letter-spacing:4px;color:#c8a84b}
+.d-body{display:flex;flex-wrap:wrap;gap:24px;padding:24px;flex:1}
+.d-art-wrap{flex:1;min-width:280px;max-width:480px}
+#detail-canvas{width:100%;border:1px solid rgba(200,168,75,.3)}
+.ai-btn{margin-top:12px;width:100%;padding:10px;border:1px solid #a08040;color:#a08040;background:transparent;font:13px "Courier New";letter-spacing:2px;cursor:pointer;transition:.3s}
+.ai-btn:hover{background:#a08040;color:#050505}
+.d-info{flex:1;min-width:260px}
+.d-cat{font-size:11px;color:#5a4a2a;letter-spacing:2px;margin-bottom:8px}
+.d-desc{font-size:13px;line-height:1.8;color:#c8b88a;margin-bottom:20px;letter-spacing:.5px}
+.facts-title{font-size:11px;color:#a08040;letter-spacing:3px;margin-bottom:10px;border-bottom:1px solid rgba(200,168,75,.2);padding-bottom:6px}
+.fact{padding:8px 0;border-bottom:1px solid rgba(200,168,75,.08);font-size:12px;color:#a09070;line-height:1.6}
+.fact::before{content:"▸ ";color:#c8a84b}
+</style></head><body>
+<a href="../index.html" class="bk">← BACK</a>
+<div class="tt">08 · 인터랙티브 국가유산 · INTERACTIVE HERITAGE</div>
+<div id="grid"></div>
+<div id="detail">
+  <div class="d-header">
+    <button class="d-back" onclick="closeDetail()">← 목록으로</button>
+    <div class="d-title" id="d-title"></div>
+  </div>
+  <div class="d-body">
+    <div class="d-art-wrap">
+      <canvas id="detail-canvas" width="480" height="320"></canvas>
+      <button class="ai-btn" onclick="genArt()">✦ AI 스타일 이미지 생성</button>
+    </div>
+    <div class="d-info">
+      <div class="d-cat" id="d-cat"></div>
+      <div class="d-desc" id="d-desc"></div>
+      <div class="facts-title">주요 사실 · KEY FACTS</div>
+      <div id="d-facts"></div>
+    </div>
+  </div>
+</div>
+<script>
+const SITES=[
+  {n:"01",name:"경복궁",eng:"Gyeongbokgung Palace",cat:"궁궐 · Palace · 서울 종로구",desc:"조선 왕조 태조 이성계가 1395년 창건한 법궁입니다. '큰 복을 누리소서'라는 뜻의 경복궁은 임진왜란 때 소실되었다가 흥선대원군의 주도로 1867년 중건되었습니다. 근정전, 경회루, 향원정 등 조선 최고의 건축물이 집결해 있습니다.",facts:["근정전은 왕의 즉위식이 열린 정전(正殿)입니다","경회루는 국내 최대 규모의 누각이며 연못 위에 세워졌습니다","총 면적 432,703㎡, 건물 330여 동에 이릅니다"],c:"#8B3A8A",art:"palace"},
+  {n:"02",name:"석굴암",eng:"Seokguram Grotto",cat:"불교 유적 · UNESCO 1995 · 경북 경주",desc:"통일신라 경덕왕 10년(751) 재상 김대성이 창건한 석굴 사원입니다. 화강암으로 조성된 인공 석굴 안에 본존불 석가모니 좌상이 동해를 향해 모셔져 있어, 신라인의 불교적 세계관과 뛰어난 건축 기술을 보여줍니다.",facts:["본존불 높이 3.26m, 광배 지름 2.2m의 걸작입니다","360여 개의 자연석으로 축조된 인공 석굴입니다","1995년 불국사와 함께 유네스코 세계유산 등재되었습니다"],c:"#4A7AB5",art:"grotto"},
+  {n:"03",name:"불국사",eng:"Bulguksa Temple",cat:"불교 유적 · UNESCO 1995 · 경북 경주",desc:"신라 법흥왕 15년(528) 창건 후 경덕왕 때 대규모 중창된 사찰입니다. 다보탑과 석가탑, 청운·백운교 등 국보급 문화재를 다수 보유하며, 신라 불교 건축 예술의 황금기를 대표합니다.",facts:["다보탑(국보 20호)과 석가탑(국보 21호)이 나란히 있습니다","청운교·백운교는 속계와 불계를 잇는 다리를 상징합니다","석굴암과 함께 유네스코 세계유산입니다"],c:"#C4372A",art:"temple"},
+  {n:"04",name:"첨성대",eng:"Cheomseongdae Observatory",cat:"과학 유적 · 삼국시대 · 경북 경주",desc:"신라 선덕여왕 재위 중(632~647) 건립된 동아시아 최고(最古)의 천문 관측 시설입니다. 362개의 화강암으로 쌓아 올린 원통형 구조물로, 높이 9.17m, 직경 4.93m에 달합니다.",facts:["동아시아에서 가장 오래된 천문 관측 시설입니다","362개의 돌은 1년 365일을 상징한다는 설이 있습니다","정남 방향으로 건립되어 천문 관측에 최적화되어 있습니다"],c:"#6B8A4A",art:"obs"},
+  {n:"05",name:"수원화성",eng:"Hwaseong Fortress",cat:"성곽 · UNESCO 1997 · 경기 수원",desc:"정조 임금이 1794~1796년에 축조한 성곽으로, 정약용이 거중기 등 신기술을 활용해 설계하였습니다. 동서양 성곽 기술을 통합한 과학적 성곽으로 평가받으며, 화성성역의궤 덕분에 완전한 복원이 가능했습니다.",facts:["총 길이 5.74km, 면적 130ha의 방어 성곽입니다","화포·총안 등 첨단 무기 시설을 갖추었습니다","1997년 유네스코 세계유산에 등재되었습니다"],c:"#7A6A3A",art:"fortress"},
+  {n:"06",name:"창덕궁",eng:"Changdeokgung Palace",cat:"궁궐 · UNESCO 1997 · 서울 종로구",desc:"조선 태종 5년(1405) 경복궁의 이궁으로 건립되었습니다. 임진왜란 이후 실질적인 법궁 역할을 하였으며, 자연 지형을 최대한 살린 후원(비원)은 조선 최고의 정원으로 손꼽힙니다.",facts:["인정전(국보 225호)은 조선 최후의 즉위식이 열린 곳입니다","후원 면적은 약 300,000㎡로 비원(秘苑)이라 불립니다","1997년 유네스코 세계유산에 등재되었습니다"],c:"#2D7A3A",art:"palace2"},
+  {n:"07",name:"해인사 장경판전",eng:"Haeinsa Janggyeong Panjeon",cat:"불교 유적 · UNESCO 1995 · 경남 합천",desc:"고려 팔만대장경(81,258장)을 보존하기 위해 15세기에 건립된 목조 건축물입니다. 자연 환기와 습도 조절 원리를 이용한 과학적 구조 덕분에 수백 년간 목판이 완전하게 보존되어 있습니다.",facts:["팔만대장경은 1237~1248년에 제작된 불교 경전입니다","창문 크기와 위치로 자연 환기를 정교하게 조절합니다","1995년 유네스코 세계유산에 등재되었습니다"],c:"#8A6030",art:"storage"},
+  {n:"08",name:"종묘",eng:"Jongmyo Shrine",cat:"왕실 제례 · UNESCO 1995 · 서울 종로구",desc:"조선 역대 왕과 왕비의 신주를 모신 왕실 사당으로, 1395년 태조가 창건하였습니다. 유교적 예법에 따라 건립된 동아시아 최대 규모의 제례 공간으로, 매년 종묘제례악과 함께 제례가 거행됩니다.",facts:["정전에 19개 신실, 49위의 신주가 모셔져 있습니다","종묘제례악은 2001년 인류무형문화유산으로 등재되었습니다","1995년 세계유산, 2001년 무형유산으로 이중 등재되었습니다"],c:"#8A2020",art:"shrine"}
+];
+
+// Draw thumbnail art
+function drawArt(ctx,w,h,type,col,detail){
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="#080808";ctx.fillRect(0,0,w,h);
+  const s=detail?3:1;
+  const cx=w/2,cy=h/2;
+  switch(type){
+    case"palace":case"palace2": {
+      const rc=type==="palace2"?"#2D7A3A":col;
+      // ground
+      ctx.fillStyle="#1A0A05";ctx.fillRect(0,h*.7,w,h*.3);
+      // main body
+      ctx.fillStyle="#2A1505";ctx.fillRect(cx-w*.3,cy+h*.05,w*.6,h*.3);
+      // columns
+      for(let i=0;i<5;i++){ctx.fillStyle="#3A2010";ctx.fillRect(cx-w*.28+i*w*.14,cy+h*.05,w*.04,h*.3);}
+      // roof layers
+      [[.7,.0,.5,.08],[.55,-.18,.4,-.1],[.35,-.35,.2,-.3]].forEach(([bw,by,tw,ty],idx)=>{
+        ctx.beginPath();ctx.moveTo(cx-w*bw,cy+h*by);ctx.lineTo(cx,cy+h*ty);ctx.lineTo(cx+w*bw,cy+h*by);ctx.closePath();
+        ctx.fillStyle=[col,rc,"#D4A017"][idx]||col;ctx.fill();
+        // eave curves
+        ctx.beginPath();ctx.moveTo(cx-w*bw,cy+h*by);ctx.quadraticCurveTo(cx-w*bw*.5,cy+h*(by+.06),cx-w*bw*.7,cy+h*(by+.04));ctx.strokeStyle="#c8a84b";ctx.lineWidth=s;ctx.stroke();
+        ctx.beginPath();ctx.moveTo(cx+w*bw,cy+h*by);ctx.quadraticCurveTo(cx+w*bw*.5,cy+h*(by+.06),cx+w*bw*.7,cy+h*(by+.04));ctx.stroke();
+      });
+      if(detail){
+        // decorative dots (단청)
+        const dcol=["#2B4B8C","#C4372A","#D4A017","#2D7A3A"];
+        for(let i=0;i<20;i++){ctx.beginPath();ctx.arc(cx-w*.28+i*(w*.56/20),cy+h*.15,2.5,0,Math.PI*2);ctx.fillStyle=dcol[i%4];ctx.fill();}
+      }
+      break;}
+    case"grotto":{
+      // stone ground
+      ctx.fillStyle="#151515";ctx.fillRect(0,0,w,h);
+      // dome
+      const gr=ctx.createRadialGradient(cx,cy,h*.05,cx,cy,h*.45);
+      gr.addColorStop(0,"#505050");gr.addColorStop(1,"#1A1A1A");
+      ctx.beginPath();ctx.arc(cx,cy,h*.42,Math.PI,0);ctx.closePath();ctx.fillStyle=gr;ctx.fill();
+      ctx.strokeStyle=col;ctx.lineWidth=s;ctx.stroke();
+      // Buddha silhouette
+      ctx.fillStyle="#c8a84b";ctx.globalAlpha=.8;
+      ctx.beginPath();ctx.arc(cx,cy-h*.05,h*.12,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx-h*.12,cy+h*.06);ctx.lineTo(cx,cy-h*.08);ctx.lineTo(cx+h*.12,cy+h*.06);ctx.closePath();ctx.fill();
+      ctx.globalAlpha=1;
+      // halo
+      ctx.beginPath();ctx.arc(cx,cy-h*.05,h*.17,0,Math.PI*2);ctx.strokeStyle="#D4A017";ctx.lineWidth=s;ctx.stroke();
+      if(detail){ctx.beginPath();ctx.arc(cx,cy-h*.05,h*.22,0,Math.PI*2);ctx.strokeStyle="rgba(212,160,23,.3)";ctx.lineWidth=s*2;ctx.stroke();}
+      break;}
+    case"temple":{
+      // Pagoda
+      ctx.fillStyle="#0A0A0A";ctx.fillRect(0,0,w,h);
+      const floors=detail?5:3;
+      for(let i=0;i<floors;i++){
+        const fw=w*(0.5-i*.08);const fy=cy+h*(0.35-i*.14);
+        ctx.fillStyle=i%2===0?"#8A2010":col;
+        ctx.fillRect(cx-fw/2,fy,fw,h*.08);
+        // eave
+        ctx.beginPath();ctx.moveTo(cx-fw/2-fw*.1,fy);ctx.lineTo(cx,fy-h*.04);ctx.lineTo(cx+fw/2+fw*.1,fy);ctx.closePath();
+        ctx.fillStyle=i%2===0?col:"#C4372A";ctx.fill();
+      }
+      ctx.fillStyle="#D4A017";ctx.beginPath();ctx.arc(cx,cy-h*.45,6*s,0,Math.PI*2);ctx.fill();
+      break;}
+    case"obs":{
+      // Cheomseongdae cylinder
+      ctx.fillStyle="#0A0808";ctx.fillRect(0,0,w,h);
+      const og=ctx.createLinearGradient(cx-w*.15,0,cx+w*.15,0);
+      og.addColorStop(0,"#3A3028");og.addColorStop(.5,"#6A5A48");og.addColorStop(1,"#2A2018");
+      ctx.fillStyle=og;
+      ctx.beginPath();ctx.ellipse(cx,cy-h*.1,w*.15,h*.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=col;ctx.lineWidth=s;ctx.stroke();
+      // stone lines
+      for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(cx-w*.14,cy-h*.4+i*h*.09);ctx.lineTo(cx+w*.14,cy-h*.4+i*h*.09);ctx.strokeStyle="rgba(200,168,75,.25)";ctx.lineWidth=.5;ctx.stroke();}
+      // square window
+      ctx.fillStyle="#0A0808";ctx.fillRect(cx-w*.05,cy,w*.1,h*.1);
+      ctx.strokeStyle=col;ctx.lineWidth=s;ctx.strokeRect(cx-w*.05,cy,w*.1,h*.1);
+      // base
+      ctx.fillStyle="#2A2010";ctx.fillRect(cx-w*.2,cy+h*.38,w*.4,h*.06);
+      break;}
+    case"fortress":{
+      ctx.fillStyle="#080808";ctx.fillRect(0,0,w,h);
+      // wall
+      const wc="#5A4A30";
+      ctx.fillStyle=wc;ctx.fillRect(0,cy,w,h*.2);
+      // crenellations
+      const nC=detail?16:8;
+      for(let i=0;i<nC;i++){ctx.fillStyle=col;ctx.fillRect(i*(w/nC),cy-h*.08,w/nC*.7,h*.08);}
+      // gate arch
+      ctx.beginPath();ctx.arc(cx,cy+h*.1,w*.08,Math.PI,0);ctx.lineTo(cx+w*.08,cy+h*.2);ctx.lineTo(cx-w*.08,cy+h*.2);ctx.closePath();ctx.fillStyle="#1A1005";ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=s;ctx.stroke();
+      // towers at sides
+      ctx.fillStyle=wc;ctx.fillRect(w*.05,cy-h*.2,w*.12,h*.35);ctx.fillRect(w*.83,cy-h*.2,w*.12,h*.35);
+      [[w*.05,cy-h*.2],[w*.83,cy-h*.2]].forEach(([tx,ty])=>{for(let i=0;i<3;i++)ctx.fillRect(tx+i*(w*.04),ty-h*.04,w*.035,h*.04);});
+      break;}
+    case"storage":{
+      // Haeinsa storage building
+      ctx.fillStyle="#080808";ctx.fillRect(0,0,w,h);
+      const bw=w*.7;const bh=h*.4;
+      ctx.fillStyle="#3A2510";ctx.fillRect(cx-bw/2,cy-bh/2,bw,bh);
+      // wood plank lines
+      for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(cx-bw/2,cy-bh/2+i*(bh/8));ctx.lineTo(cx+bw/2,cy-bh/2+i*(bh/8));ctx.strokeStyle="rgba(200,168,75,.2)";ctx.lineWidth=.5;ctx.stroke();}
+      // windows (ventilation)
+      [[.2,.3],[.45,.3],[.7,.3],[.2,.6],[.45,.6],[.7,.6]].forEach(([fx,fy])=>{
+        const wx=cx-bw/2+fx*bw;const wy=cy-bh/2+fy*bh;
+        ctx.fillStyle="#0A0808";ctx.fillRect(wx,wy,bw*.12,bh*.18);
+        ctx.strokeStyle=col;ctx.lineWidth=.5;ctx.strokeRect(wx,wy,bw*.12,bh*.18);
+      });
+      // roof
+      ctx.beginPath();ctx.moveTo(cx-bw*.55,cy-bh/2);ctx.lineTo(cx,cy-bh*.9);ctx.lineTo(cx+bw*.55,cy-bh/2);ctx.closePath();
+      ctx.fillStyle="#8A6030";ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=s;ctx.stroke();
+      break;}
+    case"shrine":{
+      // Jongmyo - long horizontal
+      ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
+      // main hall (very long)
+      const sh=h*.15;const sy=cy-sh/2;
+      ctx.fillStyle="#2A0808";ctx.fillRect(w*.02,sy,w*.96,sh);
+      // columns
+      const nc=detail?20:10;
+      for(let i=0;i<=nc;i++){const cx2=w*.02+i*(w*.96/nc);ctx.fillStyle="#1A0505";ctx.fillRect(cx2-2,sy,4,sh);}
+      // roof
+      ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(cx,sy-h*.12);ctx.lineTo(w,sy);ctx.closePath();
+      ctx.fillStyle=col;ctx.fill();ctx.strokeStyle="#D4A017";ctx.lineWidth=s;ctx.stroke();
+      // steps
+      for(let i=0;i<3;i++){ctx.fillStyle="#1A1010";ctx.fillRect(w*.02+i*8,sy+sh,w*.96-i*16,h*.04);}
+      // spirit tablets glow
+      if(detail){for(let i=0;i<8;i++){ctx.fillStyle="rgba(200,168,75,.2)";ctx.fillRect(w*.08+i*(w*.11),sy+sh*.2,w*.07,sh*.6);}}
+      break;}
+  }
+}
+
+let activeSite=null;
+function openDetail(i){
+  activeSite=i;const s=SITES[i];
+  document.getElementById("d-title").textContent=s.name+" · "+s.eng;
+  document.getElementById("d-cat").textContent=s.cat;
+  document.getElementById("d-desc").textContent=s.desc;
+  document.getElementById("d-facts").innerHTML=s.facts.map(f=>`<div class="fact">${f}</div>`).join("");
+  const dc=document.getElementById("detail-canvas");
+  drawArt(dc.getContext("2d"),480,320,s.art,s.c,true);
+  document.getElementById("detail").classList.add("on");
+  window.scrollTo(0,0);
+}
+function closeDetail(){document.getElementById("detail").classList.remove("on");activeSite=null;}
+
+function genArt(){
+  if(activeSite===null)return;
+  const s=SITES[activeSite];
+  const dc=document.getElementById("detail-canvas");
+  const ctx=dc.getContext("2d");
+  // Stylized version with noise/glow
+  drawArt(ctx,480,320,s.art,s.c,true);
+  // Add artistic overlay
+  ctx.fillStyle="rgba(200,168,75,.05)";
+  for(let i=0;i<60;i++){ctx.beginPath();ctx.arc(Math.random()*480,Math.random()*320,Math.random()*80+20,0,Math.PI*2);ctx.fill();}
+  ctx.font="bold 14px Courier New";ctx.fillStyle="rgba(200,168,75,.8)";
+  ctx.fillText("✦ AI RENDER · "+s.name,16,300);
+}
+
+// Build grid
+const grid=document.getElementById("grid");
+SITES.forEach((s,i)=>{
+  const card=document.createElement("div");
+  card.className="card";
+  const cv=document.createElement("canvas");
+  cv.width=300;cv.height=160;
+  drawArt(cv.getContext("2d"),300,160,s.art,s.c,false);
+  const body=document.createElement("div");body.className="card-body";
+  body.innerHTML=`<div class="card-num">${s.n}</div><div class="card-name">${s.name}</div><div class="card-eng">${s.eng}</div>`;
+  card.appendChild(cv);card.appendChild(body);
+  card.onclick=()=>openDetail(i);
+  grid.appendChild(card);
+});
+</script></body></html>
