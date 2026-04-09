@@ -1,899 +1,170 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>국가유산 디지털 체험관</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050505;--gold:#c8a84b;--dgold:#a08040;--text:#e8d5a3;--dim:#3a3020;--border:rgba(200,168,75,.25)}
+body{background:var(--bg);color:var(--text);font-family:"Courier New",monospace;overflow:hidden;height:100vh;width:100vw}
+body::after{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
 
-  :root {
-    --gold: #c9a84c;
-    --gold2: #e8c96a;
-    --red: #8b1a1a;
-    --ink: #1a1209;
-    --cream: #f5efe0;
-    --crt-green: #00ff41;
-    --crt-dim: rgba(0,255,65,0.08);
-  }
+/* ── BOOT ── */
+#boot{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:1000;transition:opacity .8s}
+.hanja{font-size:28px;letter-spacing:8px;color:rgba(200,168,75,.35);margin-bottom:6px}
+#boot-log{width:min(600px,90vw);height:160px;overflow:hidden;font:11px "Courier New";color:#4a7a3a;line-height:1.7;text-align:left}
+.log-line{opacity:0;animation:fadeIn .25s forwards}
+@keyframes fadeIn{to{opacity:1}}
+#prog-bar{width:min(600px,90vw);height:2px;background:rgba(200,168,75,.12);margin-top:4px}
+#prog-fill{height:100%;width:0%;background:var(--gold);transition:width .12s linear}
+#prog-pct{font:16px "Courier New";letter-spacing:4px;color:var(--gold)}
+#enter-btn{margin-top:16px;padding:12px 36px;border:1px solid var(--dgold);background:transparent;color:var(--dgold);font:14px "Courier New";letter-spacing:3px;cursor:pointer;transition:.3s;opacity:.35;pointer-events:none}
+#enter-btn.ready{opacity:1;pointer-events:all;border-color:var(--gold);color:var(--gold);animation:pulse 2s infinite}
+#enter-btn.ready:hover{background:var(--gold);color:var(--bg)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 rgba(200,168,75,0)}50%{box-shadow:0 0 24px rgba(200,168,75,.35)}}
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+/* ── MAIN ── */
+#main{position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .8s;display:flex;flex-direction:column}
+#main.on{opacity:1;pointer-events:all}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+#hdr-t{font:13px "Courier New";letter-spacing:3px;color:var(--gold)}
+#lang{display:flex;gap:5px}
+.lb{background:transparent;border:1px solid var(--border);color:var(--dim);font:11px "Courier New";padding:4px 8px;cursor:pointer;transition:.3s;letter-spacing:1px}
+.lb:hover,.lb.on{border-color:var(--gold);color:var(--gold)}
+#hero{text-align:center;padding:18px 20px 14px;flex-shrink:0}
+#hero-h{font-size:clamp(18px,4vw,34px);letter-spacing:6px;color:var(--gold);margin-bottom:5px}
+#hero-s{font:11px "Courier New";letter-spacing:3px;color:var(--dim)}
+.wc-hint{margin-top:6px;font:11px "Courier New";color:var(--dim);letter-spacing:2px}
+#grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:1px;padding:1px;overflow:hidden}
+@media(max-width:700px){#grid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(4,1fr)}}
+.card{background:rgba(255,255,255,.02);border:1px solid var(--border);display:flex;flex-direction:column;padding:14px 16px;cursor:pointer;transition:.3s;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.card:hover{background:rgba(200,168,75,.06);border-color:var(--gold)}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(200,168,75,.06),transparent 70%);opacity:0;transition:.3s}
+.card:hover::before{opacity:1}
+.c-num{font-size:11px;color:var(--dim);letter-spacing:2px;margin-bottom:6px}
+.c-name{font-size:clamp(13px,1.8vw,17px);letter-spacing:2px;color:var(--text);margin-bottom:3px}
+.c-eng{font-size:10px;color:var(--dgold);letter-spacing:1px;text-transform:uppercase;opacity:.7}
+.c-status{margin-top:auto;padding-top:8px;border-top:1px solid rgba(200,168,75,.12);font-size:10px;letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+#footer{padding:7px;text-align:center;font:10px "Courier New";color:var(--dim);letter-spacing:2px;border-top:1px solid var(--border);flex-shrink:0}
+/* webcam eye */
+#wc-eye{position:fixed;bottom:44px;right:16px;width:100px;height:70px;border:1px solid var(--border);z-index:10;overflow:hidden;opacity:.5}
+#wc-eye video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+</style></head><body>
 
-  body {
-    background: #000;
-    color: var(--cream);
-    font-family: 'Noto Sans KR', sans-serif;
-    overflow: hidden;
-    width: 100vw; height: 100vh;
-    cursor: none;
-  }
-
-  /* ── WEBCAM LAYER ── */
-  #webcam-bg {
-    position: fixed; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    opacity: 0.85;
-    z-index: 0;
-  }
-
-  /* ── CRT OVERLAY ── */
-  #crt-overlay {
-    position: fixed; inset: 0; z-index: 1;
-    pointer-events: none;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
-      );
-    animation: scanlines 8s linear infinite;
-  }
-  #crt-overlay::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
-  }
-  @keyframes scanlines { to { background-position: 0 100px; } }
-
-  /* ── VIGNETTE ── */
-  #vignette {
-    position: fixed; inset: 0; z-index: 2; pointer-events: none;
-    background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0,0,0,0.6) 100%);
-  }
-
-  /* ── NOISE ── */
-  #noise {
-    position: fixed; inset: 0; z-index: 2; pointer-events: none;
-    opacity: 0.04;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px;
-    animation: noise 0.5s steps(1) infinite;
-  }
-  @keyframes noise { 0%{background-position:0 0} 25%{background-position:-50px 30px} 50%{background-position:30px -20px} 75%{background-position:-20px 50px} }
-
-  /* ── LOADING SCREEN ── */
-  #loading-screen {
-    position: fixed; inset: 0; z-index: 100;
-    background: #000;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    font-family: 'Courier New', monospace;
-  }
-  #loading-screen.hidden { display: none; }
-
-  .crt-frame {
-    border: 2px solid var(--crt-green);
-    padding: 40px 60px;
-    position: relative;
-    max-width: 700px; width: 90%;
-    box-shadow: 0 0 40px rgba(0,255,65,0.3), inset 0 0 60px rgba(0,255,65,0.05);
-  }
-  .crt-frame::before, .crt-frame::after {
-    content: '';
-    position: absolute;
-    border: 1px solid rgba(0,255,65,0.3);
-    pointer-events: none; /* 클릭 방해 요소 제거 */
-  }
-  .crt-frame::before { inset: 4px; }
-  .crt-frame::after { inset: 8px; }
-
-  .crt-title {
-    color: var(--crt-green);
-    font-size: clamp(18px, 3vw, 28px);
-    text-align: center;
-    letter-spacing: 0.15em;
-    text-shadow: 0 0 20px var(--crt-green);
-    margin-bottom: 8px;
-    animation: flicker 4s infinite;
-  }
-  .crt-subtitle {
-    color: rgba(0,255,65,0.6);
-    font-size: 11px;
-    text-align: center;
-    letter-spacing: 0.3em;
-    margin-bottom: 32px;
-  }
-  @keyframes flicker {
-    0%,93%,97%,100% { opacity:1 }
-    94%,96% { opacity:0.4 }
-  }
-
-  .crt-log {
-    font-size: 12px;
-    color: rgba(0,255,65,0.8);
-    line-height: 1.9;
-    min-height: 160px;
-  }
-  .crt-log .line { opacity: 0; animation: fadein 0.2s forwards; }
-  .crt-log .ok { color: var(--crt-green); }
-  .crt-log .warn { color: #ffb700; }
-  .crt-log .err { color: #ff4444; }
-  @keyframes fadein { to { opacity:1 } }
-
-  .crt-progress-wrap {
-    margin-top: 24px;
-    height: 4px;
-    background: rgba(0,255,65,0.15);
-    border: 1px solid rgba(0,255,65,0.3);
-  }
-  #crt-progress {
-    height: 100%;
-    background: var(--crt-green);
-    width: 0%;
-    transition: width 0.3s;
-    box-shadow: 0 0 10px var(--crt-green);
-  }
-  .crt-pct {
-    margin-top: 8px;
-    font-size: 11px;
-    color: rgba(0,255,65,0.6);
-    text-align: right;
-    letter-spacing: 0.1em;
-  }
-  #enter-btn {
-    display: none;
-    margin: 24px auto 0;
-    padding: 10px 40px;
-    background: transparent;
-    border: 1px solid var(--crt-green);
-    color: var(--crt-green);
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    animation: pulse-border 1.5s infinite;
-    
-    /* 겹침 방지 및 클릭 무조건 활성화 */
-    position: relative;
-    z-index: 999;
-    pointer-events: auto;
-  }
-  #enter-btn:hover { background: rgba(0,255,65,0.1); }
-  @keyframes pulse-border {
-    0%,100% { box-shadow: 0 0 8px rgba(0,255,65,0.4); }
-    50% { box-shadow: 0 0 20px rgba(0,255,65,0.8); }
-  }
-
-  /* ── CUSTOM CURSOR ── */
-  #cursor {
-    position: fixed; z-index: 9999; pointer-events: none;
-    width: 18px; height: 18px;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: transform 0.05s;
-  }
-  #cursor-dot {
-    position: fixed; z-index: 9999; pointer-events: none;
-    width: 4px; height: 4px;
-    background: var(--gold);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* ── FINGER GAUGE (index finger pointing) ── */
-  #gauge-wrap {
-    position: fixed; z-index: 50; pointer-events: none;
-    display: none;
-    flex-direction: column; align-items: center;
-  }
-  #gauge-svg { filter: drop-shadow(0 0 12px rgba(0,200,80,0.8)); }
-  #gauge-label {
-    font-size: 11px;
-    color: rgba(0,255,65,0.9);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.15em;
-    margin-top: 4px;
-    text-shadow: 0 0 8px var(--crt-green);
-  }
-
-  /* ── MEDIAPIPE CANVAS ── */
-  #mp-canvas {
-    position: fixed; inset: 0; z-index: 3;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    transform: scaleX(-1);
-    opacity: 0;
-  }
-
-  /* ── HEADER ── */
-  #header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-    padding: 18px 40px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-  }
-  .header-logo {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--gold);
-    letter-spacing: 0.15em;
-    text-shadow: 0 0 20px rgba(201,168,76,0.5);
-  }
-  .header-lang {
-    display: flex; gap: 12px;
-  }
-  .lang-btn {
-    background: none; border: none;
-    color: rgba(245,239,224,0.4);
-    font-size: 12px; cursor: pointer;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.1em;
-    transition: color 0.2s;
-  }
-  .lang-btn.active, .lang-btn:hover { color: var(--gold); }
-
-  /* ── DECORATIVE FRAME ── */
-  .corner-deco {
-    position: fixed; z-index: 10; pointer-events: none;
-    width: 80px; height: 80px;
-  }
-  .corner-deco svg { width: 100%; height: 100%; opacity: 0.5; }
-  #c-tl { top: 12px; left: 12px; }
-  #c-tr { top: 12px; right: 12px; transform: scaleX(-1); }
-  #c-bl { bottom: 12px; left: 12px; transform: scaleY(-1); }
-  #c-br { bottom: 12px; right: 12px; transform: scale(-1); }
-
-  /* ── MAIN TITLE ── */
-  #main-title {
-    position: fixed; z-index: 10;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -60%);
-    text-align: center;
-    pointer-events: none;
-  }
-  .title-ko {
-    font-family: 'Noto Serif KR', serif;
-    font-size: clamp(28px, 5vw, 56px);
-    font-weight: 900;
-    color: var(--gold);
-    letter-spacing: 0.25em;
-    text-shadow: 0 0 40px rgba(201,168,76,0.6), 0 2px 4px rgba(0,0,0,0.8);
-    line-height: 1.2;
-  }
-  .title-sub {
-    font-size: clamp(10px, 1.5vw, 13px);
-    color: rgba(245,239,224,0.55);
-    letter-spacing: 0.4em;
-    margin-top: 10px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-weight: 300;
-  }
-  .title-divider {
-    width: 120px; height: 1px;
-    background: linear-gradient(to right, transparent, var(--gold), transparent);
-    margin: 16px auto;
-  }
-
-  /* ── MENU GRID ── */
-  #menu {
-    position: fixed; z-index: 10;
-    bottom: 0; left: 0; right: 0;
-    padding: 0 40px 30px;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 60%, transparent);
-  }
-  .menu-hint {
-    text-align: center;
-    font-size: 11px;
-    color: rgba(245,239,224,0.3);
-    letter-spacing: 0.3em;
-    margin-bottom: 14px;
-    font-family: 'Courier New', monospace;
-  }
-  .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 8px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .menu-item {
-    position: relative;
-    border: 1px solid rgba(201,168,76,0.25);
-    background: rgba(0,0,0,0.5);
-    padding: 12px 8px 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    backdrop-filter: blur(4px);
-    text-decoration: none;
-    display: block;
-    overflow: hidden;
-  }
-  .menu-item::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(201,168,76,0) 0%, rgba(201,168,76,0.08) 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .menu-item:hover { border-color: var(--gold); transform: translateY(-2px); }
-  .menu-item:hover::before { opacity: 1; }
-  .menu-item.priority { border-color: rgba(201,168,76,0.5); }
-  .menu-item.priority .menu-num { color: var(--gold2); }
-
-  .menu-num {
-    font-size: 9px;
-    color: rgba(201,168,76,0.5);
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.1em;
-    display: block;
-    margin-bottom: 4px;
-  }
-  .menu-icon { font-size: 20px; display: block; margin-bottom: 5px; line-height: 1; }
-  .menu-name {
-    font-family: 'Noto Serif KR', serif;
-    font-size: clamp(9px, 1vw, 12px);
-    color: var(--cream);
-    line-height: 1.3;
-    font-weight: 700;
-    display: block;
-  }
-  .menu-tag {
-    font-size: 8px;
-    color: rgba(245,239,224,0.35);
-    font-family: 'Courier New', monospace;
-    display: block;
-    margin-top: 3px;
-    letter-spacing: 0.05em;
-  }
-  .priority-badge {
-    position: absolute; top: 4px; right: 4px;
-    background: var(--gold);
-    color: #000;
-    font-size: 7px;
-    font-family: 'Courier New', monospace;
-    padding: 1px 4px;
-    letter-spacing: 0.05em;
-  }
-  /* CRT hover effect on menu */
-  .menu-item:hover .menu-name {
-    text-shadow: 0 0 10px rgba(201,168,76,0.6);
-    animation: text-glitch 0.15s steps(1) 0.1s 2;
-  }
-  @keyframes text-glitch {
-    0%   { transform: translateX(0); }
-    25%  { transform: translateX(-1px); filter: hue-rotate(90deg); }
-    75%  { transform: translateX(1px); filter: hue-rotate(-90deg); }
-    100% { transform: translateX(0); filter: none; }
-  }
-
-  /* ── FINGERPRINT GUIDE ── */
-  #guide-msg {
-    position: fixed; z-index: 10;
-    top: 50%; left: 50%;
-    transform: translate(-50%, 60px);
-    font-size: 11px;
-    color: rgba(245,239,224,0.35);
-    letter-spacing: 0.25em;
-    font-family: 'Courier New', monospace;
-    text-align: center;
-    pointer-events: none;
-    animation: breathe 3s ease-in-out infinite;
-  }
-  @keyframes breathe { 0%,100%{opacity:0.35} 50%{opacity:0.7} }
-
-  /* ── MODULE PAGES ── */
-  .module-page {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.96);
-    display: none;
-    flex-direction: column;
-  }
-  .module-page.active { display: flex; }
-  .module-header {
-    padding: 20px 40px;
-    border-bottom: 1px solid rgba(201,168,76,0.2);
-    display: flex; align-items: center; gap: 16px;
-    background: rgba(0,0,0,0.8);
-  }
-  .back-btn {
-    background: none; border: 1px solid rgba(201,168,76,0.3);
-    color: var(--gold); padding: 6px 16px;
-    font-family: 'Courier New', monospace; font-size: 12px;
-    cursor: pointer; letter-spacing: 0.1em;
-    transition: all 0.2s;
-  }
-  .back-btn:hover { background: rgba(201,168,76,0.1); }
-  .module-title {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 20px; font-weight: 700;
-    color: var(--gold);
-  }
-  .module-body { flex: 1; overflow: hidden; position: relative; }
-  .module-body iframe {
-    width: 100%; height: 100%;
-    border: none;
-    background: #000;
-  }
-  .coming-soon {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    height: 100%;
-    color: rgba(245,239,224,0.3);
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    letter-spacing: 0.3em;
-    gap: 12px;
-  }
-  .coming-soon span { font-size: 40px; opacity: 0.3; }
-</style>
-</head>
-<body>
-
-<video id="webcam-bg" autoplay muted playsinline></video>
-
-<div id="crt-overlay"></div>
-<div id="vignette"></div>
-<div id="noise"></div>
-
-<canvas id="mp-canvas"></canvas>
-
-<div id="cursor"></div>
-<div id="cursor-dot"></div>
-
-<div id="gauge-wrap">
-  <svg id="gauge-svg" width="70" height="70" viewBox="0 0 70 70">
-    <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(0,255,65,0.15)" stroke-width="4"/>
-    <circle id="gauge-arc" cx="35" cy="35" r="28" fill="none"
-      stroke="rgba(0,200,80,0.85)" stroke-width="4"
-      stroke-dasharray="175.9" stroke-dashoffset="175.9"
-      stroke-linecap="round"
-      transform="rotate(-90 35 35)"/>
-    <circle cx="35" cy="35" r="6" fill="rgba(0,255,65,0.3)"/>
-    <circle cx="35" cy="35" r="3" fill="#00ff41"/>
-  </svg>
-  <div id="gauge-label">LOADING...</div>
+<div id="boot">
+  <div class="hanja">國家遺産</div>
+  <div id="boot-log"></div>
+  <div id="prog-bar"><div id="prog-fill"></div></div>
+  <div id="prog-pct">0%</div>
+  <button id="enter-btn">[ ENTER THE EXPERIENCE ]</button>
 </div>
 
-<div class="corner-deco" id="c-tl"><svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><path d="M2 50 L2 18 L18 2" stroke="#c9a84c" stroke-width="0.5" stroke-dasharray="4 4"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
-<div class="corner-deco" id="c-tr"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
-<div class="corner-deco" id="c-bl"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
-<div class="corner-deco" id="c-br"><svg viewBox="0 0 80 80" fill="none"><path d="M2 78 L2 2 L78 2" stroke="#c9a84c" stroke-width="2"/><circle cx="2" cy="2" r="3" fill="#c9a84c"/></svg></div>
-
-<header id="header">
-  <div class="header-logo">國家遺産 · 국가유산</div>
-  <div class="header-lang">
-    <button class="lang-btn active" onclick="setLang('ko')">KO</button>
-    <button class="lang-btn" onclick="setLang('en')">EN</button>
-    <button class="lang-btn" onclick="setLang('ja')">JA</button>
-    <button class="lang-btn" onclick="setLang('zh')">ZH</button>
+<div id="main">
+  <div id="hdr">
+    <div id="hdr-t">국가유산 디지털 체험관</div>
+    <div id="lang">
+      <button class="lb on" onclick="setLang('ko',this)">KO</button>
+      <button class="lb" onclick="setLang('en',this)">EN</button>
+      <button class="lb" onclick="setLang('ja',this)">JA</button>
+      <button class="lb" onclick="setLang('zh',this)">ZH</button>
+    </div>
   </div>
-</header>
-
-<div id="main-title">
-  <div class="title-ko" data-i18n="main_title">국가유산<br>디지털 체험관</div>
-  <div class="title-divider"></div>
-  <div class="title-sub" data-i18n="main_sub">NATIONAL HERITAGE · DIGITAL EXPERIENCE</div>
-</div>
-
-<div id="guide-msg" data-i18n="guide">☝ 검지를 들어 메뉴를 선택하세요</div>
-
-<nav id="menu">
-  <div class="menu-hint" data-i18n="menu_hint">// SELECT MODULE //</div>
-  <div class="menu-grid">
-    <a class="menu-item" href="#" onclick="openModule('dancheong')">
-      <span class="menu-num">01</span>
-      <span class="menu-icon">🌊</span>
-      <span class="menu-name" data-i18n="m1">단청 물결</span>
-      <span class="menu-tag">WEBCAM + WEBGL</span>
-    </a>
-    <a class="menu-item priority" href="#" onclick="openModule('crt')">
-      <div class="priority-badge">NOW</div>
-      <span class="menu-num">02</span>
-      <span class="menu-icon">📺</span>
-      <span class="menu-name" data-i18n="m2">국가유산 CRT</span>
-      <span class="menu-tag">FACE + 3D</span>
-    </a>
-    <a class="menu-item" href="#" onclick="openModule('mudra')">
-      <span class="menu-num">03</span>
-      <span class="menu-icon">🙏</span>
-      <span class="menu-name" data-i18n="m3">색즉시OO즉시색</span>
-      <span class="menu-tag">AI VISION</span>
-    </a>
-    <a class="menu-item priority" href="#" onclick="openModule('music')">
-      <div class="priority-badge">NOW</div>
-      <span class="menu-num">04</span>
-      <span class="menu-icon">🥁</span>
-      <span class="menu-name" data-i18n="m4">전통악기 박스</span>
-      <span class="menu-tag">AUDIO ENGINE</span>
-    </a>
-    <a class="menu-item" href="#" onclick="openModule('photo')">
-      <span class="menu-num">05</span>
-      <span class="menu-icon">📸</span>
-      <span class="menu-name" data-i18n="m5">전통문양 인생네컷</span>
-      <span class="menu-tag">CAMERA + CANVAS</span>
-    </a>
-    <a class="menu-item" href="#" onclick="openModule('sillok')">
-      <span class="menu-num">06</span>
-      <span class="menu-icon">📜</span>
-      <span class="menu-name" data-i18n="m6">사관 LLM</span>
-      <span class="menu-tag">AI + CLOUD</span>
-    </a>
-    <a class="menu-item priority" href="#" onclick="openModule('conservation')">
-      <div class="priority-badge">NOW</div>
-      <span class="menu-num">07</span>
-      <span class="menu-icon">🏺</span>
-      <span class="menu-name" data-i18n="m7">보존과학 체험</span>
-      <span class="menu-tag">2D GAME</span>
-    </a>
-    <a class="menu-item" href="#" onclick="openModule('generate')">
-      <span class="menu-num">08</span>
-      <span class="menu-icon">🖨️</span>
-      <span class="menu-name" data-i18n="m8">인터랙티브 국가유산</span>
-      <span class="menu-tag">AI + PRINT</span>
-    </a>
+  <div id="hero">
+    <div id="hero-h">국가유산 디지털 체험관</div>
+    <div id="hero-s">NATIONAL HERITAGE · DIGITAL EXPERIENCE CENTER</div>
+    <div class="wc-hint" id="wc-hint">☝ 검지를 들어 메뉴를 선택하거나, 클릭하여 체험하세요</div>
   </div>
-</nav>
-
-<div class="module-page" id="page-crt">
-  <div class="module-header">
-    <button class="back-btn" onclick="closeModule('crt')">← BACK</button>
-    <div class="module-title" data-i18n="m2">국가유산 CRT</div>
-  </div>
-  <div class="module-body">
-    <iframe src="modules/crt.html" id="iframe-crt" loading="lazy"></iframe>
-  </div>
+  <div id="grid"></div>
+  <div id="footer">// 국가유산 디지털 체험관 // NATIONAL HERITAGE DIGITAL EXPERIENCE CENTER v1.0</div>
 </div>
 
-<div class="module-page" id="page-music">
-  <div class="module-header">
-    <button class="back-btn" onclick="closeModule('music')">← BACK</button>
-    <div class="module-title" data-i18n="m4">전통악기 박스</div>
-  </div>
-  <div class="module-body">
-    <iframe src="modules/music.html" id="iframe-music" loading="lazy"></iframe>
-  </div>
-</div>
-
-<div class="module-page" id="page-conservation">
-  <div class="module-header">
-    <button class="back-btn" onclick="closeModule('conservation')">← BACK</button>
-    <div class="module-title" data-i18n="m7">보존과학 체험</div>
-  </div>
-  <div class="module-body">
-    <iframe src="modules/conservation.html" id="iframe-conservation" loading="lazy"></iframe>
-  </div>
-</div>
-
-<div class="module-page" id="page-dancheong">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('dancheong')">← BACK</button><div class="module-title">단청 물결</div></div>
-  <div class="module-body"><div class="coming-soon"><span>🌊</span>이미지 파일을 제공해 주시면 구현됩니다<br><small style="margin-top:8px;font-size:11px">단청 문양 PNG/SVG 파일 필요</small></div></div>
-</div>
-<div class="module-page" id="page-mudra">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('mudra')">← BACK</button><div class="module-title">색즉시OO즉시색</div></div>
-  <div class="module-body"><iframe src="modules/mudra.html" loading="lazy"></iframe></div>
-</div>
-<div class="module-page" id="page-photo">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('photo')">← BACK</button><div class="module-title">전통문양 인생네컷</div></div>
-  <div class="module-body"><iframe src="modules/photo.html" loading="lazy"></iframe></div>
-</div>
-<div class="module-page" id="page-sillok">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('sillok')">← BACK</button><div class="module-title">사관 LLM</div></div>
-  <div class="module-body"><iframe src="modules/sillok.html" loading="lazy"></iframe></div>
-</div>
-<div class="module-page" id="page-generate">
-  <div class="module-header"><button class="back-btn" onclick="closeModule('generate')">← BACK</button><div class="module-title">인터랙티브 국가유산</div></div>
-  <div class="module-body"><div class="coming-soon"><span>🖨️</span>Vercel 함수 및 이미지 생성 API 설정 필요</div></div>
-</div>
-
-<div id="loading-screen">
-  <div class="crt-frame">
-    <div class="crt-title">// 국가유산 디지털 체험관 //</div>
-    <div class="crt-subtitle">NATIONAL HERITAGE DIGITAL EXPERIENCE CENTER v1.0</div>
-    <div class="crt-log" id="crt-log"></div>
-    <div class="crt-progress-wrap"><div id="crt-progress"></div></div>
-    <div class="crt-pct"><span id="crt-pct-num">0</span>%</div>
-    <button id="enter-btn" onclick="enterSite()">[ ENTER THE EXPERIENCE ]</button>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<div id="wc-eye"><video id="wc-vid" autoplay playsinline muted></video></div>
 
 <script>
-// ═══════════════════════════════════════════
-// i18n
-// ═══════════════════════════════════════════
-const LANGS = {
-  ko: { main_title:'국가유산\n디지털 체험관', main_sub:'NATIONAL HERITAGE · DIGITAL EXPERIENCE', guide:'☝ 검지를 들어 메뉴를 선택하세요', menu_hint:'// 모듈 선택 //', m1:'단청 물결', m2:'국가유산 CRT', m3:'색즉시OO즉시색', m4:'전통악기 박스', m5:'전통문양 인생네컷', m6:'사관 LLM', m7:'보존과학 체험', m8:'인터랙티브 국가유산' },
-  en: { main_title:'National Heritage\nDigital Experience', main_sub:'국가유산 · DIGITAL MUSEUM', guide:'☝ Point index finger to select', menu_hint:'// SELECT MODULE //', m1:'Dancheong Waves', m2:'Heritage CRT', m3:'Mudra Recognition', m4:'Traditional Music', m5:'Heritage Photo Booth', m6:'Royal Scribe LLM', m7:'Conservation Lab', m8:'AI Heritage Generator' },
-  ja: { main_title:'国家遺産\nデジタル体験館', main_sub:'국가유산 · デジタルミュージアム', guide:'☝ 人差し指でメニューを選んでください', menu_hint:'// モジュール選択 //', m1:'丹青の波', m2:'遺産CRT', m3:'手印認識', m4:'伝統楽器ボックス', m5:'伝統文様フォトブース', m6:'史官LLM', m7:'保存科学体験', m8:'AIインタラクティブ' },
-  zh: { main_title:'国家遗产\n数字体验馆', main_sub:'국가유산 · 数字博物馆', guide:'☝ 伸出食指选择菜单', menu_hint:'// 选择模块 //', m1:'丹青水波', m2:'遗产CRT', m3:'手印识别', m4:'传统乐器', m5:'传统纹样拍照', m6:'史官LLM', m7:'文物保护体验', m8:'互动国家遗产' }
+// ── Boot ──────────────────────────────────────────────────────
+const BOOT_MSGS=[
+  "[SYS] 국가유산 디지털 체험관 v1.0 부팅 중...",
+  "[SYS] Initializing cultural heritage database...",
+  "[MOD] 01 단청 물결 ...................... OK",
+  "[MOD] 02 국가유산 CRT .................. OK",
+  "[MOD] 03 색즉시OO즉시색 ............... OK",
+  "[MOD] 04 전통악기 박스 ................. OK",
+  "[MOD] 05 전통문양 인생네컷 ............. OK",
+  "[MOD] 06 사관 LLM ...................... OK",
+  "[MOD] 07 보존과학 체험 ................. OK",
+  "[MOD] 08 인터랙티브 국가유산 ........... OK",
+  "[CAM] 웹캠 초기화 시도 중...",
+  "[SYS] 모든 모듈 준비 완료. 입장하십시오.",
+];
+const logEl=document.getElementById("boot-log");
+const fillEl=document.getElementById("prog-fill");
+const pctEl=document.getElementById("prog-pct");
+const enterBtn=document.getElementById("enter-btn");
+let idx=0,pct=0;
+
+const bootTimer=setInterval(()=>{
+  if(idx<BOOT_MSGS.length){
+    const d=document.createElement("div");d.className="log-line";d.textContent=BOOT_MSGS[idx++];
+    logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight;
+  }
+  const target=Math.round(idx/BOOT_MSGS.length*100);
+  if(pct<target)pct++;
+  fillEl.style.width=pct+"%";pctEl.textContent=pct+"%";
+  if(pct>=100&&idx>=BOOT_MSGS.length){clearInterval(bootTimer);enterBtn.classList.add("ready");tryWebcam();}
+},170);
+
+enterBtn.onclick=()=>{
+  document.getElementById("boot").style.opacity="0";
+  setTimeout(()=>{document.getElementById("boot").style.display="none";document.getElementById("main").classList.add("on");},800);
 };
-let currentLang = 'ko';
-function setLang(lang) {
-  currentLang = lang;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === lang.toUpperCase()));
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (LANGS[lang][key]) el.innerHTML = LANGS[lang][key].replace('\n','<br>');
-  });
+
+// ── Webcam (optional) ─────────────────────────────────────────
+async function tryWebcam(){
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{width:200,height:140,facingMode:"user"}});
+    document.getElementById("wc-vid").srcObject=s;
+  }catch{document.getElementById("wc-eye").style.display="none";}
 }
 
-// ═══════════════════════════════════════════
-// CRT LOADING
-// ═══════════════════════════════════════════
-const loadingLines = [
-  { t: 0,   cls:'ok',   text:'[OK] SYSTEM INIT... 국가유산 체험관 v1.0' },
-  { t: 300, cls:'ok',   text:'[OK] LOADING HERITAGE DATABASE...' },
-  { t: 700, cls:'ok',   text:'[OK] WebGL 렌더러 초기화 완료' },
-  { t: 1100,cls:'ok',   text:'[OK] MEDIAPIPE HANDS MODULE LOADED' },
-  { t: 1500,cls:'warn', text:'[WARN] 웹캠 권한 요청 중...' },
-  { t: 2000,cls:'ok',   text:'[OK] AUDIO ENGINE: Tone.js READY' },
-  { t: 2400,cls:'ok',   text:'[OK] 전통악기 샘플팩 스트리밍...' },
-  { t: 2800,cls:'ok',   text:'[OK] 보존과학 게임 에셋 로드 완료' },
-  { t: 3200,cls:'ok',   text:'[OK] CRT SHADER PROGRAM COMPILED' },
-  { t: 3600,cls:'warn', text:'[WARN] 3D 유산 모델: 외부 파일 대기 중' },
-  { t: 4000,cls:'ok',   text:'[OK] i18n 다국어 패키지 로드 (KO/EN/JA/ZH)' },
-  { t: 4400,cls:'ok',   text:'[OK] FIREBASE 연결 (사관 LLM 클라우드)' },
-  { t: 4800,cls:'ok',   text:'[OK] 모든 시스템 준비 완료' },
-  { t: 5200,cls:'ok',   text:'█▓▒░ 국가유산 디지털 체험관에 오신 것을 환영합니다 ░▒▓█' },
+// ── Module data ───────────────────────────────────────────────
+const LABELS={
+  ko:{h:"국가유산 디지털 체험관",hint:"☝ 검지를 들어 메뉴를 선택하거나, 클릭하여 체험하세요",
+    mods:["단청 물결","국가유산 CRT","색즉시OO즉시색","전통악기 박스","전통문양 인생네컷","사관 LLM","보존과학 체험","인터랙티브 국가유산"]},
+  en:{h:"National Heritage Digital Experience",hint:"Click or tap a module to explore",
+    mods:["Dancheong Wave","Heritage CRT","Color & Mudra","Traditional Music","Pattern Photo Booth","Court Historian AI","Conservation Science","Interactive Heritage"]},
+  ja:{h:"国家遺産デジタル体験館",hint:"モジュールをクリックして体験してください",
+    mods:["丹青の波","遺産CRT","色即是色","伝統楽器","文様フォトブース","史官LLM","保存科学","インタラクティブ遺産"]},
+  zh:{h:"国家遗产数字体验馆",hint:"点击模块开始体验",
+    mods:["丹青波浪","遗产CRT","色即是色","传统乐器","纹样照片亭","史官LLM","保存科学","互动遗产"]},
+};
+const MODS=[
+  {n:"01",url:"modules/dancheong.html"},
+  {n:"02",url:"modules/crt.html"},
+  {n:"03",url:"modules/mudra.html"},
+  {n:"04",url:"modules/music.html"},
+  {n:"05",url:"modules/photo.html"},
+  {n:"06",url:"modules/sillok.html"},
+  {n:"07",url:"modules/conservation.html"},
+  {n:"08",url:"modules/heritage.html"},
 ];
 
-const log = document.getElementById('crt-log');
-const progressBar = document.getElementById('crt-progress');
-const pctNum = document.getElementById('crt-pct-num');
-
-loadingLines.forEach((item, i) => {
-  setTimeout(() => {
-    const div = document.createElement('div');
-    div.className = `line ${item.cls}`;
-    div.textContent = '> ' + item.text;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
-    const pct = Math.round((i+1) / loadingLines.length * 100);
-    progressBar.style.width = pct + '%';
-    pctNum.textContent = pct;
-    if (i === loadingLines.length - 1) {
-      setTimeout(() => {
-        document.getElementById('enter-btn').style.display = 'block';
-        playEnterSound();
-      }, 400);
-    }
-  }, item.t);
-});
-
-function playEnterSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const freqs = [220, 330, 440, 550, 660];
-    freqs.forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = f;
-      osc.type = 'square';
-      gain.gain.setValueAtTime(0.05, ctx.currentTime + i * 0.06);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.15);
-      osc.start(ctx.currentTime + i * 0.06);
-      osc.stop(ctx.currentTime + i * 0.06 + 0.2);
-    });
-  } catch(e) {}
-}
-
-function enterSite() {
-  const ls = document.getElementById('loading-screen');
-  ls.style.animation = 'fadeout 0.5s forwards';
-  setTimeout(() => ls.classList.add('hidden'), 500);
-  initWebcam();
-}
-
-// Inject fadeout
-const style = document.createElement('style');
-style.textContent = '@keyframes fadeout { to { opacity:0; transform: scale(1.02); } }';
-document.head.appendChild(style);
-
-// ═══════════════════════════════════════════
-// WEBCAM
-// ═══════════════════════════════════════════
-async function initWebcam() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { width:1280, height:720, facingMode:'user' }, audio: false });
-    const vid = document.getElementById('webcam-bg');
-    vid.srcObject = stream;
-    await vid.play();
-    initMediaPipe(vid);
-  } catch(e) {
-    console.warn('Webcam not available:', e);
-  }
-}
-
-// ═══════════════════════════════════════════
-// MEDIAPIPE HANDS — index finger gauge
-// ═══════════════════════════════════════════
-let gaugeProgress = 0;
-let gaugeTarget = null;
-let gaugeTimer = null;
-let isPointing = false;
-
-function initMediaPipe(videoEl) {
-  if (typeof Hands === 'undefined') return;
-  const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-  hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5 });
-  hands.onResults(onHandResults);
-  const cam = new Camera(videoEl, {
-    onFrame: async () => { await hands.send({ image: videoEl }); },
-    width: 640, height: 480
+function buildGrid(lang){
+  const grid=document.getElementById("grid");
+  grid.innerHTML="";
+  const L=LABELS[lang];
+  MODS.forEach((m,i)=>{
+    const a=document.createElement("a");a.className="card";a.href=m.url;
+    a.innerHTML=`<div class="c-num">${m.n}</div><div class="c-name">${L.mods[i]}</div><div class="c-eng">${LABELS.en.mods[i]}</div><div class="c-status"><span class="dot"></span><span>ACTIVE</span></div>`;
+    grid.appendChild(a);
   });
-  cam.start();
 }
 
-function onHandResults(results) {
-  const gaugeWrap = document.getElementById('gauge-wrap');
-  const arc = document.getElementById('gauge-arc');
-  const label = document.getElementById('gauge-label');
-
-  if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-    gaugeWrap.style.display = 'none';
-    gaugeProgress = 0; gaugeTarget = null;
-    clearTimeout(gaugeTimer); isPointing = false;
-    return;
-  }
-
-  const lm = results.multiHandLandmarks[0];
-  const pointing = isIndexPointing(lm);
-
-  if (pointing) {
-    // Position gauge at index fingertip (mirrored)
-    const x = (1 - lm[8].x) * window.innerWidth;
-    const y = lm[8].y * window.innerHeight;
-    gaugeWrap.style.display = 'flex';
-    gaugeWrap.style.left = (x - 35) + 'px';
-    gaugeWrap.style.top  = (y - 35) + 'px';
-
-    // Check if hovering a menu item
-    const el = document.elementFromPoint(x, y);
-    const menuItem = el ? el.closest('.menu-item') : null;
-
-    if (menuItem && menuItem !== gaugeTarget) {
-      gaugeTarget = menuItem;
-      gaugeProgress = 0;
-      clearTimeout(gaugeTimer);
-      startGaugeFill(menuItem);
-    } else if (!menuItem) {
-      gaugeTarget = null; gaugeProgress = 0;
-      arc.style.strokeDashoffset = 175.9;
-      label.textContent = '---';
-    }
-    isPointing = true;
-  } else {
-    gaugeWrap.style.display = 'none';
-    gaugeProgress = 0; gaugeTarget = null;
-    clearTimeout(gaugeTimer); isPointing = false;
-  }
+function setLang(lang,btn){
+  document.querySelectorAll(".lb").forEach(b=>b.classList.remove("on"));btn.classList.add("on");
+  document.getElementById("hero-h").textContent=LABELS[lang].h;
+  document.getElementById("wc-hint").textContent=LABELS[lang].hint;
+  buildGrid(lang);
 }
 
-function isIndexPointing(lm) {
-  // Index finger up, other fingers closed
-  const indexUp = lm[8].y < lm[6].y;
-  const middleDown = lm[12].y > lm[10].y;
-  const ringDown = lm[16].y > lm[14].y;
-  const pinkyDown = lm[20].y > lm[18].y;
-  return indexUp && middleDown && ringDown && pinkyDown;
-}
-
-function startGaugeFill(target) {
-  const arc = document.getElementById('gauge-arc');
-  const label = document.getElementById('gauge-label');
-  const circ = 175.9;
-  const duration = 1800; // ms to fill
-  const interval = 30;
-  let elapsed = 0;
-  clearTimeout(gaugeTimer);
-
-  function tick() {
-    elapsed += interval;
-    gaugeProgress = elapsed / duration;
-    const offset = circ * (1 - gaugeProgress);
-    arc.style.strokeDashoffset = offset;
-    const pct = Math.round(gaugeProgress * 100);
-    label.textContent = pct < 100 ? pct + '%' : '▶ ENTER';
-
-    if (gaugeProgress >= 1) {
-      playSelectSound();
-      target.click();
-      gaugeProgress = 0;
-      arc.style.strokeDashoffset = circ;
-    } else {
-      gaugeTimer = setTimeout(tick, interval);
-    }
-  }
-  gaugeTimer = setTimeout(tick, interval);
-}
-
-function playSelectSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(440, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.15);
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(); osc.stop(ctx.currentTime + 0.35);
-  } catch(e) {}
-}
-
-// ═══════════════════════════════════════════
-// CURSOR
-// ═══════════════════════════════════════════
-const cursor = document.getElementById('cursor');
-const cursorDot = document.getElementById('cursor-dot');
-document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top  = e.clientY + 'px';
-  cursorDot.style.left = e.clientX + 'px';
-  cursorDot.style.top  = e.clientY + 'px';
-});
-document.addEventListener('mousedown', () => {
-  cursor.style.transform = 'translate(-50%,-50%) scale(0.7)';
-});
-document.addEventListener('mouseup', () => {
-  cursor.style.transform = 'translate(-50%,-50%) scale(1)';
-});
-document.querySelectorAll('.menu-item').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.width = '36px';
-    cursor.style.height = '36px';
-    cursor.style.borderColor = '#e8c96a';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.width = '18px';
-    cursor.style.height = '18px';
-    cursor.style.borderColor = '#c9a84c';
-  });
-});
-
-// ═══════════════════════════════════════════
-// MODULE NAVIGATION
-// ═══════════════════════════════════════════
-function openModule(id) {
-  event && event.preventDefault();
-  const page = document.getElementById('page-' + id);
-  if (!page) return;
-  page.classList.add('active');
-  // CRT transition sound
-  playSelectSound();
-}
-function closeModule(id) {
-  const page = document.getElementById('page-' + id);
-  if (page) page.classList.remove('active');
-}
-// ESC key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.module-page.active').forEach(p => p.classList.remove('active'));
-  }
-});
-</script>
-</body>
-</html>
+buildGrid("ko");
+</script></body></html>
